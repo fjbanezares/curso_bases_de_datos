@@ -1,0 +1,17 @@
+{
+  "name": "supabase-nodejs-demo",
+  "version": "1.0.0",
+  "description": "Mini proyecto didáctico para conectar Node.js con Supabase (vía pg y vía SDK)",
+  "main": "app_pg.js",
+  "type": "module",
+  "scripts": {
+    "start:pg": "node app_pg.js",
+    "start:sdk": "node app_supabase.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1",
+    "ws": "^8.21.3"
+  }
+}

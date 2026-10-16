@@ -1,0 +1,14 @@
+# Dependencias
+node_modules/
+__pycache__/
+*.pyc
+
+# Archivos de entorno con secretos
+.env
+.env.local
+.env.*.local
+*.env
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursos PostgreSQL - Módulo de Bases de Datos</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.2em;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 4px solid var(--accent-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .badge {
+            background-color: #e8f4f8;
+            color: var(--accent-color);
+            font-size: 0.6em;
+            padding: 5px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .specs {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .specs ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .specs li {
+            margin-bottom: 8px;
+        }
+
+        .specs li::before {
+            content: "✓";
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95em;
+        }
+
+        .integration-note {
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #d35400;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Laboratorio de Datos: Alternativas PostgreSQL</h1>
+            <p class="subtitle">Como complemento a nuestro trabajo con arquitecturas NoSQL (MongoDB) y despliegues en
+                AWS, aquí tenéis las mejores plataformas Cloud gratuitas para instanciar bases de datos relacionales y
+                conectar vuestros scripts de Python o proyectos desde VS Code.</p>
+        </header>
+
+        <div class="cards-grid">
+
+            <!-- Tarjeta Neon -->
+            <div class="card">
+                <h2>Neon.tech <span class="badge">Recomendado</span></h2>
+                <div class="specs">
+                    <ul>
+                        <li>Almacenamiento: 0.5 GB</li>
+                        <li>Tarifa: Gratis permanente</li>
+                        <li>Tarjeta de crédito: No requerida</li>
+                    </ul>
+                </div>
+                <p>El estándar moderno actual para PostgreSQL *Serverless*. Su principal ventaja didáctica es que
+                    permite crear <strong>ramas de bases de datos (branching)</strong>, aplicando exactamente la misma
+                    lógica que estamos estudiando con Git: podéis hacer una rama para pruebas, romper los datos y volver
+                    a la principal sin consecuencias.</p>
+            </div>
+
+            <!-- Tarjeta Supabase -->
+            <div class="card">
+                <h2>Supabase <span class="badge">Visual</span></h2>
+                <div class="specs">
+                    <ul>
+                        <li>Almacenamiento: 500 MB</li>
+                        <li>Tarifa: 2 proyectos gratis</li>
+                        <li>Tarjeta de crédito: No requerida</li>
+                    </ul>
+                </div>
+                <p>Una alternativa muy amigable que funciona sobre un PostgreSQL estándar. Destaca por su excelente
+                    interfaz web, que os permitirá visualizar las tablas y escribir sentencias SQL directamente desde el
+                    navegador, ideal para repasar sintaxis antes de conectar la base de datos a vuestro código.</p>
+            </div>
+
+            <!-- Tarjeta Aiven -->
+            <div class="card">
+                <h2>Aiven.io <span class="badge">Capacidad</span></h2>
+                <div class="specs">
+                    <ul>
+                        <li>Almacenamiento: 5 GB</li>
+                        <li>Tarifa: 1 nodo gratuito</li>
+                        <li>Tarjeta de crédito: No requerida</li>
+                    </ul>
+                </div>
+                <p>Un servicio de infraestructura en la nube más tradicional. Es la opción más generosa en espacio para
+                    vuestros conjuntos de datos (*datasets*) de mayor volumen. Os proporcionará una cadena de conexión
+                    estándar (URI) perfecta para integrar con librerías de conexión estándar.</p>
+                <div class="integration-note">
+                    * Nota: Excelente para simulaciones de Machine Learning básico donde necesitemos almacenar
+                    históricos de datos más pesados.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>
