@@ -1,0 +1,36 @@
+No partimos de cero, ya sabemos lo que es un Sistema Operativo, un servidor, la capa fron end de presentacion, git para colaborar...
+    Pero ahora viene un aspecto fundamental: el almacenamiento
+        Es la memoria persistente, el acordarnos de algo 
+            Con esto pasamos de aplicaciones Stateless que empiezan de cero cuando apagamos el ordenador a aplicaciones statefull donde cuando volvemos a arrancar estamos donde los dejamos
+                Es más el estado ni siquiera lo tenemos que guardar en nuestro disco duro, tal y como ocurre con github podemos tener un servicio exterior que nos sirva nuestros datos por medio de una API. Git es una API, desde algún punto de vista todo son APIs cada comando de Python podría verse como tal y de hecho así es, cuando hablamos de la API de Java nos referimos a la forma estandarizada en la que el compilador va a responder e interactuar con nosotros.
+                    Y aquí aparecen las bases de datos que va a ser el principal foco de atencion
+                        Y SQL en particular como un lenguaje de programacion, una API para accder a nuestros datos de una forma estruturada y muy usada por la industria durante los años.
+                            Pero no todo es SQL, nosotro no vamos a ser tan ignorantes para pensar, eso, por eso introduciremos una base de datos NoSQL como Mongo, màs divertida en el uso que las clásicas relacionales, pero aqui lo que prima es una mente sensible y sonbre todo FLEXIBLE que sepa que hay miles de opciones de solucionar un problema y no nos casamos con ninguna, puede haber muchas motivaciones para elegir una u otra empezando con cual nos sentimos mejor y motivos de coste, velocidad, eficiencia, incluso dentro de la misma solución usar formas distintas.
+                                Exiten muchas otras formas de persistir, mira S3 o Google Buckets donde simplemente guardamos objetos, alguno de esos objetos podria ser el backup de otra base de datos
+                                    En primer lugar vamos a centrar el tiro en las bases de datos relacionales  y el modelado de datos.
+                                        Modelar tiene cierta forma de arte.
+                                            Si ponemos todo a lo bruto en un solo punto puede ser muy interesante para poblar una pagina web pues nos encontramos todo lo que necesitamos en una sola fila
+                                                Pero esto es terriblemante ineficiente en espacio y desorganizado, habrta muchos duplicacos y se desperdiciara ingente cantidad.
+                                                    Aparte al no haber una sola base de verdad podemos tener diferentes versiones del mismo dato en distintas zonas
+                                                        Por ejemplo en un banco la direccion podria estar en las facturas, podria estar en los movimientos de tarjeta ...
+                                                            Pero es más lógico tener una tabla dedicada solo a las direcciones asociada a una persona que para cambiar tenga unas reglas extrictas
+                                                                Ademas en esta tabla podemos ver en diferentes periodos de tiempo que direccion a ha tenido una persona como principales, de correspondencia, etc...
+                                                                    De esa forma en la factura habria una referencia al customer_id y este a su vez estaria referenciado en la tabla de viviendas
+                                                                      A la hora de enviar correspondendia al hacer join para saber la direccion de una persona apareceran duplicados y tendremos que tener un filtrado con un where para quedarnos con una unica y exclusiva direccion que a lo mejor tenga activado un flag de direccion de correspindencia que solo debe ser una 
+                                                                        Cuanta más complejidad tenga la operativa de negocio más complejidad puede tener la arquitectura de datos
+                                                                            Algo muy común en arquitectura es tener una arquitectura como la que hemos descrito y que respete a modo de ejemplo 1nf, 2nf y 3nf, pero más que eso sobre todo esté pensada con la cabeza
+                                                                                A esta arquitectura se sumaria un grupo de trabajos batch que mediante etl mediante un conjunto de joins poblarian otras tablas que se usarian para temas concretos como poblar un front end que requiere respuestas en milisegundos y no puede estar esperando horas para hacer una serie de tranajos cruzados
+                                                                                    La máxima expresión de esto es una base de datos de grafos como Noe4J ideal para hacer relaciones utiles en deteccion automatica de fraude mediante relaciones tipo si la persona A no tiene multas y tiene la poliza y la persona B tiene una relacion con ella y tiene muchas multas, entonces alerta de fraude en el seguro del coche...
+                                                                                        Pero sin ir al extremo de Neo4J poblar un Mongo, un Cassandra o un HBASE con los datos que necesitamos para por ejemplo un front end sencillo dar respuestass inmediatas para por ejemplo cargar los movimientos de una persona en su cuenta bancaria
+                                                                                            Para ese caso más normal cada dia podemos hacer los ETL y de la selva de joins que implica la arquitectura inteligente, tendriamos algo sencillo en HBASE   
+                                                                                                A HBASE se le puede dar cierto sentimiento de SQL con Phoenix asimismo Mongo tiene proyectos como Monggose que tambien cierran el esquema y Cassandra que decir que ya tiene da partida CQL que es un SQL reducido sin joins ya que estas bases de datos NoSQL no estan pensadas para hacer joins si bien como veremos en mongo se puede hacer referencia a otros documentos que en el findo es un join pero esto nos complica la vida.
+
+                                                        
+
+De todo este relato vemos el corolario final, se puede ver como la gestion de nuestro armario, si al llegar a casa echamos todo al cubo no tardamos ni medio segundo en poner algo en el armario pero nos llevara un siglo encontrarlo.
+Asimismo si somos pulcros y tenemos un armario muy estructurado nos costará mantener la estructura y ya no es inmediato poner algo en el armario pero seremos muy eficientes en sacarlo
+
+Igualmente con SQL tenemos que mantener una estructura y nos cuesta un mundo tener la informacion a base de joins mientras que en NoSQL las consultas son inmediatas e insertar es inmediato a cambio ocupamos mucho espacio.
+Asimismo en Mongo por ejemplo como tenemos varios nodos el esperar que el dato haya llegado a todos es muy costoso pero si no esperamos puede haber inconsistencia.
+
+Debe quedar claro que esto es un arte y esta lleno de trade offs.10 

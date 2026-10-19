@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clase 34: El Arte de la Persistencia y Arquitectura de Datos</title>
+  
+  <!-- Tipografía moderna Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       VARIABLES Y DESIGN SYSTEM ULTRA-PREMIUM (CYBER-SLATE / NEON GLASS)
+       ========================================================================== */
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #0f172a;
+      --bg-surface-elevated: #1e293b;
+      --bg-glass: rgba(15, 23, 42, 0.75);
+      --border-subtle: rgba(148, 163, 184, 0.12);
+      --border-glow: rgba(56, 189, 248, 0.35);
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --cyan-400: #38bdf8;
+      --cyan-500: #0ea5e9;
+      --violet-500: #8b5cf6;
+      --violet-600: #7c3aed;
+      --emerald-400: #34d399;
+      --emerald-500: #10b981;
+      --amber-400: #fbbf24;
+      --amber-500: #f59e0b;
+      --rose-500: #f43f5e;
+      --rose-400: #fb7185;
+
+      --gradient-brand: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 50%, #ec4899 100%);
+      --gradient-card: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+      --gradient-cyan-violet: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+      --gradient-emerald: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+      --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+      --shadow-glow: 0 0 30px -5px rgba(56, 189, 248, 0.25);
+      --shadow-violet-glow: 0 0 35px -5px rgba(139, 92, 246, 0.3);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --radius-full: 9999px;
+
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    /* Reset y Fundamentos */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      color-scheme: dark;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+        linear-gradient(to bottom, transparent, var(--bg-base));
+      background-attachment: fixed;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: var(--radius-full);
+      border: 2px solid var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cyan-500);
+    }
+
+    /* Barra de Progreso Superior */
+    #reading-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: var(--gradient-brand);
+      z-index: 1000;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+      transition: width 0.1s ease-out;
+    }
+
+    /* Contenedor Principal */
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Tipografía */
+    h1, h2, h3, h4, h5 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+
+    .gradient-text {
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .cyan-text {
+      color: var(--cyan-400);
+    }
+
+    .violet-text {
+      color: var(--violet-500);
+    }
+
+    .emerald-text {
+      color: var(--emerald-400);
+    }
+
+    /* Badges y Tags */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: 1px solid var(--border-subtle);
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(8px);
+    }
+
+    .badge-cyan {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--cyan-400);
+      background: rgba(14, 165, 233, 0.1);
+    }
+
+    .badge-violet {
+      border-color: rgba(139, 92, 246, 0.4);
+      color: #a78bfa;
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .badge-emerald {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--emerald-400);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .badge-amber {
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--amber-400);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    /* Header y Barra de Navegación Flotante */
+    header.hero {
+      padding: 90px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    .nav-pill-wrapper {
+      position: sticky;
+      top: 18px;
+      z-index: 900;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 50px;
+      padding: 0 16px;
+    }
+
+    .nav-pill-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      backdrop-filter: blur(16px);
+      padding: 6px 10px;
+      border-radius: var(--radius-full);
+      box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.4);
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    .nav-pill-link {
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+    }
+
+    .nav-pill-link:hover, .nav-pill-link.active {
+      color: #ffffff;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Secciones Maestras */
+    section.module-section {
+      padding: 60px 0 80px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section-header {
+      margin-bottom: 40px;
+    }
+
+    .section-number {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--cyan-400);
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section-title {
+      font-size: 2.3rem;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .section-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 820px;
+    }
+
+    /* Tarjetas Glassmórficas */
+    .glass-card {
+      background: var(--gradient-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 28px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    /* Botones Interactivos */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 24px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-500) 0%, var(--violet-600) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5);
+    }
+
+    .btn-emerald {
+      background: var(--gradient-emerald);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-emerald:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-outline {
+      background: rgba(30, 41, 59, 0.6);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-outline:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--cyan-400);
+      color: var(--cyan-400);
+    }
+
+    /* Bloques de Código */
+    .code-window {
+      background: #080c14;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 18px 0;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .code-header {
+      background: #0d1320;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .code-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .code-title {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .code-copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: color 0.2s;
+    }
+    .code-copy-btn:hover {
+      color: var(--cyan-400);
+    }
+
+    pre.code-content {
+      padding: 18px;
+      overflow-x: auto;
+      line-height: 1.55;
+      color: #e2e8f0;
+    }
+
+    /* ==========================================================================
+       COMPONENTES INTERACTIVOS ESPECÍFICOS
+       ========================================================================== */
+
+    /* 1. Simulador Stateless vs Stateful */
+    .state-simulator {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .sim-panel {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      position: relative;
+    }
+
+    .sim-status-lamp {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .lamp-online { color: #10b981; background: #10b981; }
+    .lamp-crashed { color: #ef4444; background: #ef4444; }
+
+    .memory-box {
+      background: #090e17;
+      border: 1px dashed #334155;
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin: 14px 0;
+      min-height: 110px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    /* 2. Visualizador del Desastre Monolito vs 3NF */
+    .table-container {
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    table.data-table th {
+      background: #0f172a;
+      color: var(--cyan-400);
+      padding: 12px 16px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    table.data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      white-space: nowrap;
+    }
+
+    table.data-table tr:hover {
+      background: rgba(56, 189, 248, 0.04);
+    }
+
+    .duplicate-row {
+      background: rgba(239, 68, 68, 0.12) !important;
+      color: #fca5a5;
+    }
+
+    .correct-row {
+      background: rgba(16, 185, 129, 0.1) !important;
+      color: #6ee7b7;
+    }
+
+    /* 3. El Armario Interactivo */
+    .wardrobe-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 24px;
+    }
+
+    .wardrobe-box {
+      border: 2px dashed rgba(148, 163, 184, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.5);
+      position: relative;
+    }
+
+    .closet-visual {
+      height: 220px;
+      border: 2px solid #334155;
+      border-radius: var(--radius-md);
+      margin: 16px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #080c14;
+      position: relative;
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .clothes-pile {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 90%;
+    }
+
+    .cloth-item {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 600;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .cloth-blue { background: #2563eb; color: white; }
+    .cloth-red { background: #dc2626; color: white; }
+    .cloth-green { background: #059669; color: white; }
+    .cloth-yellow { background: #d97706; color: white; }
+
+    @keyframes popIn {
+      0% { transform: scale(0.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 4. Canvas de Grafo Interactivo (Neo4J) */
+    .graph-canvas-container {
+      background: #080d1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      position: relative;
+      margin: 20px 0;
+    }
+
+    svg.fraud-graph {
+      width: 100%;
+      height: 380px;
+      display: block;
+    }
+
+    .node-circle {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .node-circle:hover {
+      filter: drop-shadow(0 0 12px var(--cyan-400));
+    }
+
+    .link-line {
+      stroke: #334155;
+      stroke-width: 2.5;
+      transition: stroke 0.4s, stroke-width 0.4s;
+    }
+
+    .link-fraud {
+      stroke: #f43f5e !important;
+      stroke-width: 4 !important;
+      stroke-dasharray: 6;
+      animation: dashMove 1s linear infinite;
+    }
+
+    @keyframes dashMove {
+      from { stroke-dashoffset: 20; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Pestañas de Motores NoSQL */
+    .engine-tabs {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .engine-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .engine-tab-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--cyan-400);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+
+    .engine-content-panel {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    .engine-content-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 60px 0 40px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    /* Media queries */
+    @media (max-width: 900px) {
+      .section-title { font-size: 1.8rem; }
+      .grid-2, .state-simulator, .wardrobe-container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de progreso superior -->
+  <div id="reading-progress"></div>
+
+  <!-- Hero Header -->
+  <header class="hero container">
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+      <span class="badge badge-cyan">⚡ 7 Horas de Arquitectura</span>
+      <span class="badge badge-violet">🏛️ Modelo Entidad-Relación</span>
+      <span class="badge badge-emerald">🏦 Banco Horizonte (Caso Real)</span>
+      <span class="badge badge-amber">🌐 Polyglot Persistence</span>
+    </div>
+    
+    <h1 style="font-size: clamp(2.4rem, 5vw, 3.8rem); line-height: 1.15; margin-bottom: 20px;">
+      El Arte de la <span class="gradient-text">Persistencia</span> y la Arquitectura de Datos
+    </h1>
+    <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 860px; margin: 0 auto 30px;">
+      De la memoria de las aplicaciones al ecosistema transaccional y NoSQL: aprende cómo arquitecturar sistemas bancarios, erradicar inconsistencias, dominar el dilema del armario y elegir la tecnología adecuada sin dogmas.
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+      <a href="#modulo-1" class="btn btn-primary">Comenzar Exploración</a>
+      <a href="#simulador-armario" class="btn btn-outline">👔 El Dilema del Armario</a>
+      <a href="#laboratorio-sql" class="btn btn-emerald">💾 Banco Horizonte SQL</a>
+    </div>
+  </header>
+
+  <!-- Barra Flotante de Navegación -->
+  <div class="nav-pill-wrapper">
+    <nav class="nav-pill-bar" id="pill-nav">
+      <a href="#modulo-1" class="nav-pill-link">I. Memoria & APIs</a>
+      <a href="#modulo-2" class="nav-pill-link">II. Modelado Bancario 3NF</a>
+      <a href="#laboratorio-sql" class="nav-pill-link">III. Trampa del JOIN</a>
+      <a href="#modulo-4" class="nav-pill-link">IV. Universo NoSQL</a>
+      <a href="#simulador-armario" class="nav-pill-link">V. El Armario & CAP</a>
+      <a href="#matriz-decision" class="nav-pill-link">Matriz Maestra</a>
+    </nav>
+  </div>
+
+  <main class="container">
+
+    <!-- ====================================================================
+         MÓDULO I: FUNDAMENTOS DE LA MEMORIA Y PERSISTENCIA
+         ==================================================================== -->
+    <section id="modulo-1" class="module-section">
+      <div class="section-header">
+        <div class="section-number">Módulo I • Fundamentos de Sistemas</div>
+        <h2 class="section-title">De la Memoria Efímera a la Persistencia Universal</h2>
+        <p class="section-desc">
+          No partimos de cero: entendemos qué es un Sistema Operativo, un Servidor web y la capa Frontend. Pero sin persistencia, cualquier cálculo informático sufre amnesia total cada vez que se reinicia el sistema.
+        </p>
+      </div>
+
+      <!-- Simulador Interactivo Stateless vs Stateful -->
+      <div class="glass-card" style="margin-bottom: 35px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <h3 style="font-size: 1.4rem; margin-bottom: 4px;">🧪 Laboratorio Interactivo: Stateless vs Stateful</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Observa qué ocurre en RAM y en Disco cuando simulamos un corte de corriente o reinicio del contenedor.</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button id="btn-add-funds" class="btn btn-outline" onclick="addDemoFunds()">➕ Transferir +500€</button>
+            <button id="btn-crash-server" class="btn btn-primary" onclick="triggerServerCrash()" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">💥 Provocar Crash de Servidor</button>
+          </div>
+        </div>
+
+        <div class="state-simulator">
+          <!-- Servidor Stateless -->
+          <div class="sim-panel" id="panel-stateless">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="color: var(--rose-400);">Aplicación Stateless (Solo RAM)</h4>
+              <span id="lamp-stateless" class="sim-status-lamp lamp-online"></span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin: 6px 0 12px;">Variables locales en memoria volátil de proceso.</p>
+            <div class="memory-box">
+              <div style="color: var(--cyan-400); margin-bottom: 6px;">// Memoria RAM del proceso Node/Python:</div>
+              <div>Cliente: <span style="color: #cbd5e1;">Elena Navarro</span></div>
+              <div>Saldo en RAM: <strong id="val-ram-balance" style="color: #38bdf8; font-size: 1.15rem;">3.450,00 €</strong></div>
+              <div>Estado de Sesión: <span id="val-ram-status" style="color: #34d399;">AUTENTICADO_ACTIVO</span></div>
+            </div>
+            <div id="msg-stateless" style="font-size: 0.85rem; color: var(--text-muted);">El proceso sigue en ejecución. Todo parece funcionar.</div>
+          </div>
+
+          <!-- Servidor Stateful con DB -->
+          <div class="sim-panel" id="panel-stateful">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="color: var(--emerald-400);">Arquitectura Stateful (PostgreSQL Persistente)</h4>
+              <span id="lamp-stateful" class="sim-status-lamp lamp-online"></span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin: 6px 0 12px;">Transacción fijada en bloques de disco SSD (WAL).</p>
+            <div class="memory-box">
+              <div style="color: var(--emerald-400); margin-bottom: 6px;">// SELECT balance FROM accounts WHERE id = 1:</div>
+              <div>Tabla: <span style="color: #cbd5e1;">public.accounts</span></div>
+              <div>Saldo en Disco: <strong id="val-disk-balance" style="color: #34d399; font-size: 1.15rem;">3.450,00 €</strong></div>
+              <div>Transacciones Registradas: <span id="val-disk-txs" style="color: #fbbf24;">4 movimientos (ACID)</span></div>
+            </div>
+            <div id="msg-stateful" style="font-size: 0.85rem; color: var(--text-muted);">Datos protegidos físicamente en almacenamiento persistente.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjetas Explicativas: Todo son APIs & Persistencia Exterior -->
+      <div class="grid-3">
+        <div class="glass-card">
+          <div style="font-size: 1.8rem; margin-bottom: 12px;">🐙</div>
+          <h4 style="margin-bottom: 8px;">El Estado Deslocalizado</h4>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            El estado ni siquiera tiene que guardarse en nuestro disco duro local. Tal como ocurre con GitHub, tenemos un servicio exterior que nos sirve los datos mediante una API de sincronización.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div style="font-size: 1.8rem; margin-bottom: 12px;">🔌</div>
+          <h4 style="margin-bottom: 8px;">Todo son APIs</h4>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Git es una API. Cada llamada del runtime de Python o Java es una API: un contrato estandarizado con el que el compilador o intérprete interactúa con nosotros de forma predecible.
+          </p>
+        </div>
+
+        <div class="glass-card">
+          <div style="font-size: 1.8rem; margin-bottom: 12px;">🪣</div>
+          <h4 style="margin-bottom: 8px;">Object Storage (S3 / GCS)</h4>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            No todo son filas. En AWS S3 o Google Cloud Storage guardamos blobs inmutables: PDFs de extractos, fotos de DNIs y backups masivos con durabilidad garantizada del 99.999999999%.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO II: MODELADO RELACIONAL BANCARIO & 3NF
+         ==================================================================== -->
+    <section id="modulo-2" class="module-section">
+      <div class="section-header">
+        <div class="section-number">Módulo II • Modelado Relacional y Negocio</div>
+        <h2 class="section-title">El Arte del Modelo Entidad-Relación y las 3 Formas Normales</h2>
+        <p class="section-desc">
+          Modelar datos tiene cierta forma de arte. Si ponemos todo a lo bruto en un solo punto, puede parecer cómodo para el frontend porque todo llega en una sola fila. Pero destruye la consistencia y multiplica exponencialmente el espacio en disco.
+        </p>
+      </div>
+
+      <!-- Comparador Interactivo Monolito vs 3NF -->
+      <div class="glass-card" style="margin-bottom: 35px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+          <div>
+            <h3 style="font-size: 1.3rem;">Visualizador de Inconsistencia: Monolito vs Normalizado</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Elena Navarro tiene 4 casas registradas y hace compras periódicas. Alterna el modo para ver el desastre.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-show-monolith" class="btn btn-outline" onclick="renderMonolithTable()">❌ Ver Monolito Caótico (Excel)</button>
+            <button id="btn-show-3nf" class="btn btn-emerald" onclick="render3NFTable()">✅ Ver Arquitectura 3NF</button>
+          </div>
+        </div>
+
+        <div id="table-display-area" class="table-container">
+          <!-- La tabla se renderiza dinámicamente con JS -->
+        </div>
+
+        <div id="table-explanation-box" style="padding: 16px; border-radius: var(--radius-sm); background: rgba(30, 41, 59, 0.5); font-size: 0.9rem; border-left: 4px solid var(--cyan-400);">
+          Cargando análisis de arquitectura...
+        </div>
+      </div>
+
+      <!-- Tarjetas de las 3 Formas Normales -->
+      <div class="grid-3">
+        <div class="glass-card" style="border-top: 4px solid var(--cyan-400);">
+          <div class="badge badge-cyan" style="margin-bottom: 12px;">1NF • Atomicidad</div>
+          <h4 style="margin-bottom: 8px;">Cero Grupos Repetitivos</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Cada celda contiene un único valor escalar indivisible. Quedan prohibidas las listas separadas por comas (<code>'Gran Vía 45, Playa 12'</code>) y las columnas repetitivas (<code>casa_1</code>, <code>casa_2</code>).
+          </p>
+        </div>
+
+        <div class="glass-card" style="border-top: 4px solid var(--violet-500);">
+          <div class="badge badge-violet" style="margin-bottom: 12px;">2NF • Dependencia Total</div>
+          <h4 style="margin-bottom: 8px;">Toda la Clave Primaria</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Cumple 1NF y cada columna que no es clave depende por completo de toda la clave primaria. El concepto de la compra o el importe dependen del ID de la transacción, no del nombre del cliente.
+          </p>
+        </div>
+
+        <div class="glass-card" style="border-top: 4px solid var(--emerald-400);">
+          <div class="badge badge-emerald" style="margin-bottom: 12px;">3NF • Cero Transitividad</div>
+          <h4 style="margin-bottom: 8px;">Sin Atributos Transitivos</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Ningún atributo depende de otro que no sea la clave primaria. La ciudad depende del código postal, no directamente de la persona. Extraerlo crea una única fuente de verdad inmutable.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO III: EL LABORATORIO SQL Y LA TRAMPA DEL JOIN
+         ==================================================================== -->
+    <section id="laboratorio-sql" class="module-section">
+      <div class="section-header">
+        <div class="section-number">Módulo III • Práctica SQL en Vivo</div>
+        <h2 class="section-title">El Caso de las Direcciones y la Trampa de los Duplicados</h2>
+        <p class="section-desc">
+          En el banco, una persona tiene su residencia habitual, su casa de veraneo, su piso de alquiler y su dirección de correspondencia. Al cruzar con transacciones, un JOIN descuidado desata una explosión cartesiana.
+        </p>
+      </div>
+
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+          <div>
+            <span class="badge badge-amber">⚠️ Caso Crítico de Negocio</span>
+            <h3 style="font-size: 1.35rem; margin-top: 6px;">Simulador de Consultas SQL: ¿Duplicados o Filtrado Inteligente?</h3>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-run-bad-join" class="btn btn-outline" onclick="runJoinQuery('bad')">💥 Ejecutar JOIN Incondicional (16 filas)</button>
+            <button id="btn-run-good-join" class="btn btn-emerald" onclick="runJoinQuery('good')">🛡️ Aplicar WHERE is_correspondence (4 filas)</button>
+          </div>
+        </div>
+
+        <!-- Visor de Query -->
+        <div class="code-window">
+          <div class="code-header">
+            <div class="code-dots"><span class="code-dot dot-red"></span><span class="code-dot dot-yellow"></span><span class="code-dot dot-green"></span></div>
+            <div class="code-title" id="sql-viewer-title">Consulta SQL Actual</div>
+            <button class="code-copy-btn" onclick="copySqlCode()">Copiar SQL</button>
+          </div>
+          <pre class="code-content"><code id="sql-code-snippet">-- Haz clic en uno de los botones para ver la sentencia SQL y sus efectos</code></pre>
+        </div>
+
+        <!-- Tabla de Resultados de la Query -->
+        <h4 style="margin: 20px 0 10px; font-size: 1rem; color: var(--cyan-400);">Resultados Devueltos por PostgreSQL:</h4>
+        <div id="join-results-container" class="table-container">
+          <!-- Renderizado por JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO IV: EL UNIVERSO NoSQL ESPECIALIZADO
+         ==================================================================== -->
+    <section id="modulo-4" class="module-section">
+      <div class="section-header">
+        <div class="section-number">Módulo IV • Ecosistema NoSQL y Big Data</div>
+        <h2 class="section-title">El Salto a la Escala: ETLs, HBase, Cassandra, Mongo y Neo4J</h2>
+        <p class="section-desc">
+          Cuando un front-end de banca móvil exige responder a 10 millones de usuarios en menos de 5 milisegundos, no podemos ejecutar JOINs cruzados en tiempo real. Usamos procesos Batch/ETL y bases de datos especializadas.
+        </p>
+      </div>
+
+      <!-- Selector de Pestañas de Motores NoSQL -->
+      <div class="engine-tabs">
+        <button class="engine-tab-btn active" onclick="switchEngineTab('neo4j')">🕸️ Neo4J (Grafos y Fraude)</button>
+        <button class="engine-tab-btn" onclick="switchEngineTab('hbase')">⚡ Apache HBase & Phoenix (RowKey)</button>
+        <button class="engine-tab-btn" onclick="switchEngineTab('cassandra')">🚀 Cassandra (CQL & Clustering)</button>
+        <button class="engine-tab-btn" onclick="switchEngineTab('mongo')">🍃 MongoDB & Mongoose</button>
+      </div>
+
+      <!-- 1. Neo4J: Grafo Interactivo de Detección de Fraude -->
+      <div id="tab-neo4j" class="engine-content-panel active">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <div>
+              <h3 style="font-size: 1.35rem;">Detección Automática de Fraude en Seguros de Coche</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Elena (sin multas) es titular de la póliza de un Audi A4. Marcos (con 14 multas y carnet retirado) vive en su misma casa y declara un accidente fingido.
+              </p>
+            </div>
+            <button id="btn-detect-fraud" class="btn btn-primary" onclick="triggerFraudDetection()">🔍 Ejecutar Algoritmo Cypher</button>
+          </div>
+
+          <!-- SVG Interactivo del Grafo -->
+          <div class="graph-canvas-container">
+            <svg class="fraud-graph" viewBox="0 0 800 360" id="fraud-svg">
+              <!-- Enlaces -->
+              <line id="link-elena-dir" x1="160" y1="180" x2="400" y2="80" class="link-line" />
+              <line id="link-marcos-dir" x1="640" y1="180" x2="400" y2="80" class="link-line" />
+              <line id="link-elena-pol" x1="160" y1="180" x2="260" y2="280" class="link-line" />
+              <line id="link-pol-car" x1="260" y1="280" x2="400" y2="280" class="link-line" />
+              <line id="link-marcos-car" x1="640" y1="180" x2="400" y2="280" class="link-line" />
+
+              <!-- Etiquetas de Enlace -->
+              <text x="250" y="120" fill="#64748b" font-size="11">LIVES_AT</text>
+              <text x="510" y="120" fill="#64748b" font-size="11">LIVES_AT</text>
+              <text x="170" y="240" fill="#64748b" font-size="11">HOLDS_POLICY</text>
+              <text x="310" y="270" fill="#64748b" font-size="11">INSURES</text>
+              <text x="500" y="240" fill="#64748b" font-size="11">REPORTED_ACCIDENT</text>
+
+              <!-- Nodos -->
+              <!-- Elena -->
+              <g class="node-circle" transform="translate(160, 180)">
+                <circle r="36" fill="#1e293b" stroke="#38bdf8" stroke-width="3" />
+                <text text-anchor="middle" dy="5" fill="#f8fafc" font-size="12" font-weight="bold">Elena (A)</text>
+                <text text-anchor="middle" dy="20" fill="#34d399" font-size="9">0 Multas</text>
+              </g>
+
+              <!-- Dirección Compartida -->
+              <g class="node-circle" transform="translate(400, 80)">
+                <circle r="36" fill="#1e293b" stroke="#f59e0b" stroke-width="3" />
+                <text text-anchor="middle" dy="-2" fill="#f8fafc" font-size="11" font-weight="bold">Gran Vía 45</text>
+                <text text-anchor="middle" dy="14" fill="#94a3b8" font-size="9">Domicilio</text>
+              </g>
+
+              <!-- Marcos (Sospechoso) -->
+              <g class="node-circle" transform="translate(640, 180)">
+                <circle id="node-marcos-circle" r="36" fill="#1e293b" stroke="#ef4444" stroke-width="3" />
+                <text text-anchor="middle" dy="5" fill="#f8fafc" font-size="12" font-weight="bold">Marcos (B)</text>
+                <text text-anchor="middle" dy="20" fill="#f87171" font-size="9">14 Multas (Revocado)</text>
+              </g>
+
+              <!-- Póliza -->
+              <g class="node-circle" transform="translate(260, 280)">
+                <circle r="32" fill="#1e293b" stroke="#8b5cf6" stroke-width="2" />
+                <text text-anchor="middle" dy="4" fill="#f8fafc" font-size="10">Póliza 9981</text>
+              </g>
+
+              <!-- Vehículo Siniestrado -->
+              <g class="node-circle" transform="translate(400, 280)">
+                <circle id="node-car-circle" r="34" fill="#1e293b" stroke="#06b6d4" stroke-width="2" />
+                <text text-anchor="middle" dy="4" fill="#f8fafc" font-size="11">Audi A4</text>
+              </g>
+            </svg>
+          </div>
+
+          <div id="fraud-result-banner" style="display: none; padding: 16px; border-radius: var(--radius-sm); background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; font-size: 0.95rem;">
+            🚨 <strong>ALERTA DE FRAUDE DETECTADA:</strong> Elena y Marcos conviven en el mismo domicilio. Marcos carece de permiso válido y declara un siniestro sobre un vehículo asegurado por Elena para evadir la penalización de prima. <em>(Consulta Cypher ejecutada en 3.2 ms)</em>.
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. HBase: RowKey Invertida -->
+      <div id="tab-hbase" class="engine-content-panel">
+        <div class="glass-card">
+          <h3 style="font-size: 1.35rem; margin-bottom: 6px;">HBase: El Secreto de la RowKey Invertida</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 18px;">
+            En una aplicación bancaria móvil, el cliente siempre quiere ver sus <strong>últimos movimientos</strong> de hoy, no los de hace 5 años. Guardamos la clave física restando el timestamp al valor máximo de un entero de 64 bits (<code>Long.MAX_VALUE - timestamp</code>).
+          </p>
+
+          <div class="grid-2">
+            <div>
+              <h4 style="color: var(--cyan-400); margin-bottom: 10px;">Generador de RowKey Dinámica</h4>
+              <label style="font-size: 0.85rem; color: var(--text-dim);">Cliente:</label>
+              <select id="hbase-client-select" class="btn btn-outline" style="width: 100%; margin-bottom: 12px; text-align: left;" onchange="updateHbaseDemo()">
+                <option value="CUST#001">CUST#001 (Elena Navarro)</option>
+                <option value="CUST#002">CUST#002 (Carlos Benítez)</option>
+                <option value="CUST#003">CUST#003 (Lucía Morales)</option>
+              </select>
+
+              <label style="font-size: 0.85rem; color: var(--text-dim);">Concepto de Movimiento:</label>
+              <input type="text" id="hbase-concept-input" value="Cena Restaurante El Cenador" class="btn btn-outline" style="width: 100%; margin-bottom: 14px; text-align: left;" oninput="updateHbaseDemo()">
+
+              <div style="background: #090e17; padding: 14px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.85rem; border: 1px solid #334155;">
+                <div style="color: var(--text-dim);">RowKey Generada en HBase:</div>
+                <div id="hbase-generated-rowkey" style="color: var(--emerald-400); font-weight: bold; word-break: break-all; margin-top: 4px;">CUST#001_9223370311844775807</div>
+              </div>
+            </div>
+
+            <div class="code-window" style="margin: 0;">
+              <div class="code-header">
+                <div class="code-title">Apache Phoenix / HBase Shell</div>
+              </div>
+              <pre class="code-content"><code>-- Lectura instantánea en 1 milisegundo:
+SCAN 'bank_statements', {
+  STARTROW => 'CUST#001_',
+  STOPROW  => 'CUST#001_~',
+  LIMIT    => 10
+}
+-- Phoenix añade sintaxis SQL sobre HBase:
+SELECT * FROM bank_statements 
+WHERE rowkey LIKE 'CUST#001_%' 
+LIMIT 10;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Cassandra: Partición y Clustering -->
+      <div id="tab-cassandra" class="engine-content-panel">
+        <div class="glass-card">
+          <h3 style="font-size: 1.35rem; margin-bottom: 6px;">Cassandra y CQL: La Base de Datos sin JOINs</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 18px;">
+            Cassandra está diseñada para escribir 1 millón de transacciones por segundo en cientos de nodos peer-to-peer. Cada tabla se modela pensando en <strong>una sola pantalla del usuario</strong>.
+          </p>
+          <div class="code-window">
+            <div class="code-header">
+              <div class="code-title">Cassandra Query Language (CQL)</div>
+            </div>
+            <pre class="code-content"><code>-- Partición por customer_id; Ordenación física en disco por fecha DESC:
+CREATE TABLE customer_tx_by_date (
+    customer_id int,
+    transaction_time timestamp,
+    transaction_id uuid,
+    customer_name text static, -- Columna estática única para todas las filas del cliente
+    concept text,
+    amount decimal,
+    PRIMARY KEY ((customer_id), transaction_time, transaction_id)
+) WITH CLUSTERING ORDER BY (transaction_time DESC);
+
+-- ¡No hace falta ordenar en memoria! La lectura es un puntero continuo a disco en 2ms:
+SELECT customer_name, transaction_time, concept, amount 
+FROM customer_tx_by_date 
+WHERE customer_id = 1 
+LIMIT 10;</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. MongoDB y Mongoose -->
+      <div id="tab-mongo" class="engine-content-panel">
+        <div class="glass-card">
+          <h3 style="font-size: 1.35rem; margin-bottom: 6px;">MongoDB: El Dilema entre Embeber y Referenciar ($lookup)</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 18px;">
+            En Mongo podemos embeber las 4 casas dentro del documento de Elena para traerlas en una sola petición HTTP. Pero si Elena acumula 100.000 transacciones, el documento supera los 16 MB y debemos usar <code>$lookup</code>, que recrea el coste del JOIN.
+          </p>
+          <div class="code-window">
+            <div class="code-header">
+              <div class="code-title">Documento BSON en MongoDB</div>
+            </div>
+            <pre class="code-content"><code>{
+  "_id": "cust_11223344A",
+  "fullName": "Elena Navarro Soler",
+  "addresses": [
+    { "type": "Principal", "street": "Gran Vía 45", "city": "Madrid", "isCorrespondence": true },
+    { "type": "Veraneo", "street": "Paseo Marítimo 12", "city": "Alicante" }
+  ],
+  "recentSummary": {
+    "totalBalance": 3450.00,
+    "lastUpdated": ISODate("2026-10-17T20:00:00Z")
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MÓDULO V: EL GRAN COROLARIO & EL ARMARIO
+         ==================================================================== -->
+    <section id="simulador-armario" class="module-section">
+      <div class="section-header">
+        <div class="section-number">Módulo V • El Gran Corolario Final</div>
+        <h2 class="section-title">La Metáfora del Armario y el Teorema CAP</h2>
+        <p class="section-desc">
+          Si al llegar a casa tiras toda la ropa al cubo, tardas medio segundo en poner algo en el armario, pero te llevará un siglo encontrar el calcetín azul al día siguiente. Esto es un arte y está lleno de trade-offs.
+        </p>
+      </div>
+
+      <!-- Simulador del Armario -->
+      <div class="glass-card" style="margin-bottom: 35px;">
+        <h3 style="font-size: 1.35rem; margin-bottom: 8px;">👔 Laboratorio Interactivo: El Dilema del Armario</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem;">Experimenta la diferencia física entre escribir a lo bruto (sin normalizar) frente a estructurar con orden relacional.</p>
+
+        <div class="wardrobe-container">
+          <!-- Lado A: El Cubo Caótico -->
+          <div class="wardrobe-box">
+            <h4 style="color: var(--rose-400); margin-bottom: 8px;">El Cubo Caótico (NoSQL / Monolito)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-dim);">Escribir es instantáneo; encontrar algo es desesperante.</p>
+
+            <div class="closet-visual" id="closet-messy">
+              <div class="clothes-pile" id="pile-messy">
+                <!-- Se añaden prendas desordenadas -->
+                <span class="cloth-item cloth-red">Camisa Roja</span>
+                <span class="cloth-item cloth-green">Pantalón</span>
+                <span class="cloth-item cloth-yellow">Sudadera</span>
+                <span class="cloth-item cloth-blue" id="target-sock-messy">Calcetín Azul</span>
+                <span class="cloth-item cloth-green">Toalla</span>
+                <span class="cloth-item cloth-red">Bufanda</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; justify-content: center;">
+              <button class="btn btn-outline" onclick="throwClothMessy()">Tirar Ropa (0.2s)</button>
+              <button class="btn btn-primary" onclick="searchSockMessy()" style="background: #e11d48;">🔍 Buscar Calcetín Azul</button>
+            </div>
+            <div id="time-messy" style="margin-top: 10px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--rose-400);">Tiempo de búsqueda: --</div>
+          </div>
+
+          <!-- Lado B: El Armario Estructurado -->
+          <div class="wardrobe-box">
+            <h4 style="color: var(--emerald-400); margin-bottom: 8px;">El Armario Estructurado (SQL 3NF)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-dim);">Cuesta clasificar al guardar; la búsqueda es un puntero directo.</p>
+
+            <div class="closet-visual" id="closet-organized" style="flex-direction: row; gap: 10px; justify-content: space-around;">
+              <div style="border: 1px solid #334155; padding: 8px; border-radius: 6px; width: 45%; height: 90%;">
+                <div style="font-size: 0.75rem; color: var(--cyan-400); border-bottom: 1px solid #334155; margin-bottom: 6px;">Cajón Calcetines</div>
+                <div id="target-sock-clean" class="cloth-item cloth-blue" style="margin-top: 10px;">Calcetín Azul</div>
+              </div>
+              <div style="border: 1px solid #334155; padding: 8px; border-radius: 6px; width: 45%; height: 90%;">
+                <div style="font-size: 0.75rem; color: var(--violet-500); border-bottom: 1px solid #334155; margin-bottom: 6px;">Perchas Camisas</div>
+                <div class="cloth-item cloth-red" style="margin-top: 6px;">Camisa 1</div>
+                <div class="cloth-item cloth-green" style="margin-top: 6px;">Camisa 2</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; justify-content: center;">
+              <button class="btn btn-outline" onclick="storeClothClean()">Doblar y Guardar (3s)</button>
+              <button class="btn btn-emerald" onclick="searchSockClean()">⚡ Buscar Calcetín Azul</button>
+            </div>
+            <div id="time-clean" style="margin-top: 10px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--emerald-400);">Tiempo de búsqueda: --</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teorema CAP Interactivo -->
+      <div class="glass-card">
+        <h3 style="font-size: 1.35rem; margin-bottom: 8px;">El Teorema CAP y el Dilema del Write Concern</h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 20px;">
+          En sistemas distribuidos, cuando la red entre servidores falla, debemos elegir entre <strong>Consistencia (C)</strong> o <strong>Disponibilidad (A)</strong>.
+        </p>
+
+        <div class="grid-2">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <h4 style="color: var(--amber-400); margin-bottom: 10px;">Ajuste de Write Concern en MongoDB</h4>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 12px;">Mueve el selector para comprobar el compromiso entre velocidad de respuesta y seguridad del dinero:</p>
+            
+            <input type="range" id="cap-slider" min="1" max="2" value="1" style="width: 100%; margin-bottom: 16px;" oninput="updateCapDemo()">
+
+            <div id="cap-explanation" style="font-family: var(--font-mono); font-size: 0.88rem; padding: 12px; background: #080c14; border-radius: var(--radius-sm); border: 1px solid #334155;">
+              w: 1 (Escritura rápida en 1ms, pero riesgo de pérdida si el nodo primario se cae antes de replicar).
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; justify-content: center;">
+            <blockquote style="border-left: 4px solid var(--violet-500); padding-left: 18px; font-style: italic; color: #cbd5e1; font-size: 1.05rem;">
+              "En la banca no hay espacio para la eventual consistency cuando hablamos de saldos: la transferencia debe ser atómica o no ser. Pero para el timeline de la app móvil, podemos aceptar réplicas con 1 segundo de retraso a cambio de no tumbar el servidor central."
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MATRIZ MAESTRA DE DECISIÓN ARQUITECTÓNICA
+         ==================================================================== -->
+    <section id="matriz-decision" class="module-section">
+      <div class="section-header">
+        <div class="section-number">Matriz Comparativa de Ingeniería</div>
+        <h2 class="section-title">El Mapa de Decisión del Arquitecto Políglota</h2>
+        <p class="section-desc">
+          Ninguna tecnología es una bala de plata. Compara las fortalezas y las debilidades de cada motor según el caso de uso real de tu organización.
+        </p>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Base de Datos</th>
+              <th>Paradigma</th>
+              <th>Punto Fuerte Absoluto</th>
+              <th>Punto Débil Crítico</th>
+              <th>Caso de Uso Óptimo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color: #38bdf8;">PostgreSQL / Oracle</strong></td>
+              <td>Relacional (3NF)</td>
+              <td>Garantía transaccional ACID estricta y consultas ad-hoc con JOIN.</td>
+              <td>Escrituras masivas a escala global (>500k writes/seg sin sharding).</td>
+              <td>Libro mayor bancario, balances contables, compras en comercio.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #34d399;">MongoDB</strong></td>
+              <td>Documental BSON</td>
+              <td>Flexibilidad de esquema y lectura de documentos anidados sin JOIN.</td>
+              <td>Relaciones complejas cruzadas que exigen múltiples <code>$lookup</code>.</td>
+              <td>Catálogos de productos, perfiles de usuario, carritos web.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #f59e0b;">Apache Cassandra</strong></td>
+              <td>Wide-Column P2P</td>
+              <td>Escritura brutalmente rápida y tolerancia a fallos 100% sin máster.</td>
+              <td>Imposibilidad total de hacer JOINs o consultas no modeladas en la clave.</td>
+              <td>Sensores IoT, telemetría, timelines masivos de redes sociales.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #8b5cf6;">Apache HBase</strong></td>
+              <td>Columnar sobre HDFS</td>
+              <td>Escaneo por rangos de petabytes en 1ms gracias a la RowKey.</td>
+              <td>Falta de índices secundarios y complejidad operativa de Hadoop.</td>
+              <td>Historial de extractos bancarios de 10 años servidos a móviles.</td>
+            </tr>
+            <tr>
+              <td><strong style="color: #f43f5e;">Neo4J</strong></td>
+              <td>Grafo de Propiedades</td>
+              <td>Recorridos ultrarrápidos de relaciones multinivel profundas con Cypher.</td>
+              <td>Almacenamiento tabular de transacciones o reporting analítico pesado.</td>
+              <td>Detección de fraude, blanqueo de capitales, motores de recomendación.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p style="margin-bottom: 8px;">🎓 <strong>Clase Maestra 34: Persistencia y Arquitectura de Datos</strong></p>
+      <p style="font-size: 0.85rem;">Diseñado con Vanilla HTML5, CSS3 y JavaScript moderno • Sin dependencias externas</p>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       LÓGICA JAVASCRIPT DINÁMICA E INTERACTIVA
+       ========================================================================== -->
+  <script>
+    // 1. Barra de progreso superior al hacer scroll
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('reading-progress').style.width = scrolled + '%';
+      
+      // Actualizar enlace activo en la barra de navegación
+      updateActiveNavPill();
+    });
+
+    function updateActiveNavPill() {
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('.nav-pill-link');
+      let currentSection = '';
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (window.pageYOffset >= sectionTop) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + currentSection) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    // 2. Lógica del Simulador Stateless vs Stateful
+    let currentBalance = 3450.00;
+    let txCount = 4;
+    let isCrashed = false;
+
+    function addDemoFunds() {
+      if (isCrashed) {
+        alert("⚠️ El servidor está apagado tras el crash. ¡Reinícialo primero!");
+        return;
+      }
+      currentBalance += 500;
+      txCount++;
+      const formatted = currentBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €';
+      document.getElementById('val-ram-balance').innerText = formatted;
+      document.getElementById('val-disk-balance').innerText = formatted;
+      document.getElementById('val-disk-txs').innerText = txCount + ' movimientos (ACID)';
+    }
+
+    function triggerServerCrash() {
+      isCrashed = true;
+      // Crash en Stateless: se pierde la RAM
+      document.getElementById('lamp-stateless').className = 'sim-status-lamp lamp-crashed';
+      document.getElementById('val-ram-balance').innerText = '0,00 € (¡PÉRDIDA TOTAL!)';
+      document.getElementById('val-ram-balance').style.color = '#ef4444';
+      document.getElementById('val-ram-status').innerText = 'PROCESO_TERMINADO_AMNESIA';
+      document.getElementById('val-ram-status').style.color = '#ef4444';
+      document.getElementById('msg-stateless').innerHTML = '❌ <strong style="color: #ef4444;">¡Pérdida de sesión!</strong> La memoria RAM se descargó. El nuevo proceso empieza desde cero.';
+
+      // En Stateful: el disco conserva la verdad
+      document.getElementById('lamp-stateful').className = 'sim-status-lamp lamp-crashed';
+      document.getElementById('msg-stateful').innerHTML = '🔄 <strong style="color: #fbbf24;">Servidor reiniciando...</strong> Al arrancar, el motor lee el WAL de PostgreSQL y recupera exactamente los ' + currentBalance.toLocaleString('es-ES') + ' €.';
+
+      setTimeout(() => {
+        document.getElementById('lamp-stateful').className = 'sim-status-lamp lamp-online';
+        document.getElementById('msg-stateful').innerHTML = '✅ <strong style="color: #34d399;">Recuperación Completa:</strong> El estado sobrevivió al 100% gracias a la persistencia no volátil.';
+        isCrashed = false;
+      }, 2200);
+    }
+
+    // 3. Renderizado de Tablas: Monolito vs 3NF
+    function renderMonolithTable() {
+      const html = `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>DNI</th>
+              <th>Calle</th>
+              <th>Tipo Casa</th>
+              <th>Concepto Transacción</th>
+              <th>Importe</th>
+              <th>Diagnóstico de Almacenamiento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="duplicate-row">
+              <td>1</td>
+              <td>Elena Navarro</td>
+              <td>11223344A</td>
+              <td>C/ Gran Vía 45</td>
+              <td>Principal</td>
+              <td>Supermercado Mercadona</td>
+              <td>-86.45 €</td>
+              <td>🚨 Copia 1 de datos de Elena</td>
+            </tr>
+            <tr class="duplicate-row">
+              <td>1</td>
+              <td>Elena Navarro</td>
+              <td>11223344A</td>
+              <td>Paseo Marítimo 12</td>
+              <td>Veraneo</td>
+              <td>Supermercado Mercadona</td>
+              <td>-86.45 €</td>
+              <td>🚨 Copia 2 (¡Misma compra duplicada por la 2ª casa!)</td>
+            </tr>
+            <tr class="duplicate-row">
+              <td>1</td>
+              <td>Elena Navarro</td>
+              <td>11223344A</td>
+              <td>C/ Sierpes 8</td>
+              <td>Inversión</td>
+              <td>Supermercado Mercadona</td>
+              <td>-86.45 €</td>
+              <td>🚨 Copia 3 (¡Misma compra duplicada por la 3ª casa!)</td>
+            </tr>
+            <tr class="duplicate-row">
+              <td>1</td>
+              <td>Elena Navarro</td>
+              <td>11223344A</td>
+              <td>C/ Mayor 102</td>
+              <td>Histórica</td>
+              <td>Supermercado Mercadona</td>
+              <td>-86.45 €</td>
+              <td>🚨 Copia 4 (¡Misma compra duplicada por la 4ª casa!)</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+      document.getElementById('table-display-area').innerHTML = html;
+      document.getElementById('table-explanation-box').innerHTML = `
+        <strong style="color: #ef4444;">🚨 ANTIPATRÓN DETECTADO (40 Filas en total):</strong> 
+        Al meterlo todo en una sola fila para complacer al frontend, cada transacción de Elena se multiplica por sus 4 casas. El banco almacena el nombre "Elena Navarro" y su DNI 16 veces para solo 4 transacciones. Si Elena actualiza su teléfono, corremos el riesgo de actualizar unas filas sí y otras no, destruyendo la <em>Single Source of Truth</em>.
+      `;
+    }
+
+    function render3NFTable() {
+      const html = `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Entidad / Tabla</th>
+              <th>Clave Primaria (PK)</th>
+              <th>Relación</th>
+              <th>Filas Reales en Disco</th>
+              <th>Ventaja Arquitectónica</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="correct-row">
+              <td><strong>customers</strong></td>
+              <td><code>id = 1</code></td>
+              <td>Padre (1)</td>
+              <td><strong>1 sola fila</strong> para Elena</td>
+              <td>Identidad inmutable. El nombre no se repite jamás.</td>
+            </tr>
+            <tr class="correct-row">
+              <td><strong>customer_addresses</strong></td>
+              <td><code>id (1..4)</code></td>
+              <td>Hijo (1:N) vía <code>customer_id</code></td>
+              <td><strong>4 filas</strong> (1 por cada casa)</td>
+              <td>Reglas estrictas, históricos y flags de correspondencia.</td>
+            </tr>
+            <tr class="correct-row">
+              <td><strong>transactions</strong></td>
+              <td><code>id (1..4)</code></td>
+              <td>Hijo (1:N) vía <code>customer_id</code></td>
+              <td><strong>4 filas</strong> reales</td>
+              <td>El dinero está limpio sin multiplicaciones artificiales.</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+      document.getElementById('table-display-area').innerHTML = html;
+      document.getElementById('table-explanation-box').innerHTML = `
+        <strong style="color: #10b981;">✅ ARQUITECTURA NORMALIZADA 3NF:</strong> 
+        Cada entidad reside en su propia tabla con claves foráneas. El espacio en disco se reduce en un 75% y actualizar una dirección exige modificar exactamente <strong>una única celda</strong> en la base de datos sin tocar el historial contable.
+      `;
+    }
+
+    // 4. Lógica de Consultas SQL y la Trampa del JOIN
+    const badJoinSql = `SELECT 
+    c.full_name,
+    t.concept,
+    t.amount,
+    a.street_address,
+    a.address_type
+FROM customers c
+JOIN transactions t ON c.id = t.customer_id
+JOIN customer_addresses a ON c.id = a.customer_id
+WHERE c.id = 1;`;
+
+    const goodJoinSql = `SELECT 
+    c.full_name,
+    c.tax_id,
+    a.street_address AS direccion_oficial,
+    a.city,
+    a.postal_code,
+    t.concept AS movimiento,
+    t.amount AS importe
+FROM customers c
+JOIN customer_addresses a 
+    ON c.id = a.customer_id 
+   AND a.is_correspondence = TRUE 
+   AND a.valid_to IS NULL
+JOIN transactions t 
+    ON c.id = t.customer_id
+WHERE c.id = 1
+ORDER BY t.transaction_timestamp DESC;`;
+
+    function runJoinQuery(type) {
+      if (type === 'bad') {
+        document.getElementById('sql-viewer-title').innerText = "JOIN Incondicional (Peligro de Producto Cartesiano)";
+        document.getElementById('sql-code-snippet').innerText = badJoinSql;
+        
+        let rows = '';
+        const txs = [
+          { concept: "Abono Nómina Tech Corp", amount: "+3.450,00 €" },
+          { concept: "Compra Mercadona Gran Vía", amount: "-86,45 €" },
+          { concept: "Recibo Electricidad Iberdrola", amount: "-112,30 €" },
+          { concept: "Cena Restaurante El Cenador", amount: "-145,00 €" }
+        ];
+        const addrs = ["Gran Vía 45 (Principal)", "Paseo Marítimo 12 (Veraneo)", "C/ Sierpes 8 (Inversión)", "Mayor 102 (Histórica)"];
+
+        txs.forEach(t => {
+          addrs.forEach(a => {
+            rows += `
+              <tr class="duplicate-row">
+                <td>Elena Navarro</td>
+                <td>${t.concept}</td>
+                <td>${t.amount}</td>
+                <td>${a}</td>
+              </tr>
+            `;
+          });
+        });
+
+        document.getElementById('join-results-container').innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.15); padding: 10px; border-radius: 6px; margin-bottom: 10px; color: #fca5a5;">
+            ⚠️ <strong>ALERTA:</strong> La consulta devolvió <strong>16 filas</strong> (4 transacciones × 4 casas). Cada movimiento de tarjeta aparece repetido 4 veces.
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>Cliente</th><th>Movimiento</th><th>Importe</th><th>Dirección Cruzada</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      } else {
+        document.getElementById('sql-viewer-title').innerText = "JOIN con Reglas de Negocio (Filtrado Determinista)";
+        document.getElementById('sql-code-snippet').innerText = goodJoinSql;
+
+        const cleanRows = `
+          <tr class="correct-row">
+            <td>Elena Navarro</td>
+            <td>Cena Restaurante El Cenador</td>
+            <td>-145,00 €</td>
+            <td>Calle Gran Vía 45, 4ºB (Madrid)</td>
+            <td>28013</td>
+          </tr>
+          <tr class="correct-row">
+            <td>Elena Navarro</td>
+            <td>Recibo Electricidad Iberdrola</td>
+            <td>-112,30 €</td>
+            <td>Calle Gran Vía 45, 4ºB (Madrid)</td>
+            <td>28013</td>
+          </tr>
+          <tr class="correct-row">
+            <td>Elena Navarro</td>
+            <td>Compra Mercadona Gran Vía</td>
+            <td>-86,45 €</td>
+            <td>Calle Gran Vía 45, 4ºB (Madrid)</td>
+            <td>28013</td>
+          </tr>
+          <tr class="correct-row">
+            <td>Elena Navarro</td>
+            <td>Abono Nómina Tech Corp</td>
+            <td>+3.450,00 €</td>
+            <td>Calle Gran Vía 45, 4ºB (Madrid)</td>
+            <td>28013</td>
+          </tr>
+        `;
+
+        document.getElementById('join-results-container').innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.15); padding: 10px; border-radius: 6px; margin-bottom: 10px; color: #6ee7b7;">
+            ✅ <strong>ÉXITO:</strong> Exactamente <strong>4 filas</strong> limpias. El filtro <code>is_correspondence = TRUE AND valid_to IS NULL</code> colapsó los duplicados.
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>Cliente</th><th>Movimiento</th><th>Importe</th><th>Dirección de Correspondencia</th><th>C.P.</th></tr>
+            </thead>
+            <tbody>${cleanRows}</tbody>
+          </table>
+        `;
+      }
+    }
+
+    function copySqlCode() {
+      const code = document.getElementById('sql-code-snippet').innerText;
+      navigator.clipboard.writeText(code);
+      alert("¡Código SQL copiado al portapapeles!");
+    }
+
+    // 5. Selector de Pestañas de Motores NoSQL
+    function switchEngineTab(tabId) {
+      document.querySelectorAll('.engine-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.engine-content-panel').forEach(p => p.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    // 6. Grafo Interactivo de Detección de Fraude en Neo4J
+    function triggerFraudDetection() {
+      // Activar animación en las líneas sospechosas
+      document.getElementById('link-elena-dir').classList.add('link-fraud');
+      document.getElementById('link-marcos-dir').classList.add('link-fraud');
+      document.getElementById('link-marcos-car').classList.add('link-fraud');
+      document.getElementById('node-marcos-circle').setAttribute('stroke-width', '6');
+      document.getElementById('node-car-circle').setAttribute('stroke-width', '5');
+
+      document.getElementById('fraud-result-banner').style.display = 'block';
+    }
+
+    // 7. Generador Dinámico de RowKey HBase
+    function updateHbaseDemo() {
+      const client = document.getElementById('hbase-client-select').value;
+      const timestamp = Date.now();
+      const maxLong = 922337036854775807n;
+      const inverted = maxLong - BigInt(timestamp);
+      document.getElementById('hbase-generated-rowkey').innerText = `${client}_${inverted.toString()}`;
+    }
+
+    // 8. El Armario Interactivo
+    function throwClothMessy() {
+      const colors = ['cloth-blue', 'cloth-red', 'cloth-green', 'cloth-yellow'];
+      const names = ['Calcetín Extra', 'Camiseta', 'Bufanda', 'Pantalón Vaquero'];
+      const rColor = colors[Math.floor(Math.random() * colors.length)];
+      const rName = names[Math.floor(Math.random() * names.length)];
+
+      const item = document.createElement('span');
+      item.className = 'cloth-item ' + rColor;
+      item.innerText = rName;
+      document.getElementById('pile-messy').appendChild(item);
+    }
+
+    function searchSockMessy() {
+      const target = document.getElementById('target-sock-messy');
+      document.getElementById('time-messy').innerText = "Revolviendo todo el cubo...";
+      target.style.outline = "none";
+
+      setTimeout(() => {
+        target.style.outline = "3px solid #f43f5e";
+        target.style.transform = "scale(1.2)";
+        document.getElementById('time-messy').innerText = "⏱️ Encontrado tras escanear todo el montón: 45 minutos (I/O intensivo Seq Scan).";
+      }, 1200);
+    }
+
+    function storeClothClean() {
+      alert("✅ Camisa planchada, doblada y colgada en su percha correspondiente. Tiempo invertido: 3 segundos.");
+    }
+
+    function searchSockClean() {
+      const sock = document.getElementById('target-sock-clean');
+      sock.style.outline = "3px solid #10b981";
+      sock.style.transform = "scale(1.2)";
+      document.getElementById('time-clean').innerText = "⚡ Puntero directo al cajón de calcetines: 0.05 segundos (Index Scan B-Tree).";
+    }
+
+    // 9. Teorema CAP Slider
+    function updateCapDemo() {
+      const val = document.getElementById('cap-slider').value;
+      const exp = document.getElementById('cap-explanation');
+      if (val === '1') {
+        exp.innerHTML = `
+          <strong style="color: #38bdf8;">w: 1 (Alta Velocidad / Eventual):</strong><br>
+          El nodo primario responde en <strong>1 milisegundo</strong> sin esperar a los nodos secundarios. Ideal para analítica o likes, pero arriesgado para transferencias bancarias.
+        `;
+      } else {
+        exp.innerHTML = `
+          <strong style="color: #10b981;">w: 'majority' (Consistencia Bancaria Estricta):</strong><br>
+          El motor exige que la mayoría de los servidores distribuidos confirmen en disco antes de dar el OK. Latencia: <strong>25 milisegundos</strong>, pero garantía de que el dinero jamás desaparecerá.
+        `;
+      }
+    }
+
+    // Inicialización al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      render3NFTable();
+      runJoinQuery('good');
+      updateHbaseDemo();
+    });
+  </script>
+</body>
+</html>

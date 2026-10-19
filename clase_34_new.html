@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clase 34: Persistencia, Arquitectura y Ecosistema de Datos (Guía Práctica de Laboratorio)</title>
+
+  <!-- Tipografía moderna Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-canvas: #060911;
+      --bg-panel: #0c1220;
+      --bg-panel-elevated: #141c30;
+      --bg-glass: rgba(12, 18, 32, 0.88);
+      
+      --border-subtle: rgba(148, 163, 184, 0.12);
+      --border-highlight: rgba(56, 189, 248, 0.4);
+
+      --text-bright: #ffffff;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.2);
+      --violet: #8b5cf6;
+      --violet-glow: rgba(139, 92, 246, 0.2);
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --rose: #f43f5e;
+
+      --gradient-brand: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 50%, #ec4899 100%);
+      --gradient-emerald: linear-gradient(135deg, #34d399 0%, #059669 100%);
+
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 30px -5px rgba(56, 189, 248, 0.25);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      color-scheme: dark;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.7;
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(56, 189, 248, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 90% 35%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(52, 211, 153, 0.05) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 9px; }
+    ::-webkit-scrollbar-track { background: var(--bg-canvas); }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: var(--radius-full); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+    /* Barra de Progreso Superior */
+    #progress-tracker {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: var(--gradient-brand);
+      z-index: 1000;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* Layout con Barra Lateral Fija */
+    .layout-wrapper {
+      display: flex;
+      max-width: 1650px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+    }
+
+    /* Sidebar de Navegación */
+    aside.sidebar {
+      width: 330px;
+      height: calc(100vh - 40px);
+      position: sticky;
+      top: 20px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 22px 16px;
+      backdrop-filter: blur(16px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-soft);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .sidebar-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-bright);
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.8rem;
+      color: var(--cyan);
+      font-family: var(--font-mono);
+    }
+
+    .sidebar-nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--cyan);
+      border-left: 3px solid var(--cyan);
+    }
+
+    .sidebar-point-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #1e293b;
+      color: var(--text-dim);
+    }
+
+    /* Contenido Central */
+    main.content-area {
+      flex: 1;
+      padding: 24px 36px;
+      max-width: 1100px;
+      min-width: 0;
+    }
+
+    /* Hero de Apertura */
+    .hero-banner {
+      background: linear-gradient(180deg, rgba(20, 28, 48, 0.75) 0%, rgba(12, 18, 32, 0.95) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 45px 36px;
+      margin-bottom: 45px;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .hero-badge-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .badge-cyan { color: var(--cyan); border-color: rgba(56, 189, 248, 0.4); background: var(--cyan-glow); }
+    .badge-violet { color: var(--violet); border-color: rgba(139, 92, 246, 0.4); background: var(--violet-glow); }
+    .badge-emerald { color: var(--emerald); border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.1); }
+    .badge-amber { color: var(--amber); border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.1); }
+    .badge-rose { color: var(--rose); border-color: rgba(244, 63, 94, 0.4); background: rgba(244, 63, 94, 0.1); }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      line-height: 1.18;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .gradient-text {
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .hero-lead {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 860px;
+    }
+
+    /* Cada Punto Didáctico */
+    article.lecture-point {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 40px;
+      position: relative;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    article.lecture-point:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .point-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .point-number-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .point-title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      color: #ffffff;
+      line-height: 1.25;
+      margin-bottom: 18px;
+    }
+
+    /* Caja de la Frase Original del Profesor */
+    .teacher-quote-box {
+      background: rgba(30, 41, 59, 0.45);
+      border-left: 4px solid var(--cyan);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      padding: 14px 20px;
+      margin-bottom: 22px;
+      font-style: italic;
+      color: #e2e8f0;
+      font-size: 1.02rem;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .quote-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+      color: var(--cyan);
+      flex-shrink: 0;
+    }
+
+    /* Cuerpo Teórico */
+    .theory-body {
+      color: var(--text-main);
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .theory-body p { margin-bottom: 12px; }
+    .theory-body ul { margin: 10px 0 16px 22px; }
+    .theory-body li { margin-bottom: 5px; }
+
+    /* Tarjetas Didácticas */
+    .didactic-note {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-size: 0.92rem;
+    }
+
+    .didactic-note-title {
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .alert-box {
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-size: 0.92rem;
+    }
+
+    .alert-rose {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fca5a5;
+    }
+
+    .alert-emerald {
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #6ee7b7;
+    }
+
+    /* Ventanas de Código */
+    .code-box {
+      background: #050811;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 18px 0;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+    }
+
+    .code-box-header {
+      background: #090e1a;
+      padding: 9px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .code-dots { display: flex; gap: 5px; }
+    .code-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #10b981; }
+
+    .code-box-title { font-size: 0.78rem; color: var(--text-dim); }
+
+    .btn-copy {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--cyan);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      padding: 3px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: var(--cyan);
+      color: #000;
+    }
+
+    pre.code-text {
+      padding: 16px;
+      overflow-x: auto;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    /* Tablas Visuales */
+    .table-responsive {
+      overflow-x: auto;
+      margin: 14px 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    table.pedagogic-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.86rem;
+    }
+
+    table.pedagogic-table th {
+      background: #0e1526;
+      color: var(--cyan);
+      padding: 10px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    table.pedagogic-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      white-space: nowrap;
+    }
+
+    table.pedagogic-table tr:hover {
+      background: rgba(56, 189, 248, 0.03);
+    }
+
+    .row-bad { background: rgba(239, 68, 68, 0.12) !important; color: #fca5a5; }
+    .row-good { background: rgba(16, 185, 129, 0.12) !important; color: #6ee7b7; }
+
+    .split-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin: 16px 0;
+    }
+
+    /* Diagrama Visual de Entidades */
+    .entity-diagram-card {
+      background: #080c16;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin: 16px 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 1100px) {
+      aside.sidebar { display: none; }
+      main.content-area { padding: 16px 8px; max-width: 100%; }
+      .split-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de progreso superior -->
+  <div id="progress-tracker"></div>
+
+  <div class="layout-wrapper">
+    
+    <!-- SIDEBAR DE NAVEGACIÓN -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Guía de Laboratorio 34</div>
+        <div class="sidebar-subtitle">30 Puntos Prácticos con SQL</div>
+      </div>
+      <ul class="sidebar-nav-list" id="sidebar-links">
+        <li><a href="#punto-1" class="sidebar-link"><span class="sidebar-point-badge">01</span> 🖥️ De dónde venimos</a></li>
+        <li><a href="#punto-2" class="sidebar-link"><span class="sidebar-point-badge">02</span> 💾 El Almacenamiento</a></li>
+        <li><a href="#punto-3" class="sidebar-link"><span class="sidebar-point-badge">03</span> 🧠 Memoria Persistente</a></li>
+        <li><a href="#punto-4" class="sidebar-link"><span class="sidebar-point-badge">04</span> ⚡ Stateless vs Stateful</a></li>
+        <li><a href="#punto-5" class="sidebar-link"><span class="sidebar-point-badge">05</span> 🔌 Todo son APIs</a></li>
+        <li><a href="#punto-6" class="sidebar-link"><span class="sidebar-point-badge">06</span> 🏛️ Nacen las BD</a></li>
+        <li><a href="#punto-7" class="sidebar-link"><span class="sidebar-point-badge">07</span> 📜 SQL Básico (Create/Insert/Select)</a></li>
+        <li><a href="#punto-8" class="sidebar-link"><span class="sidebar-point-badge">08</span> 🍃 NoSQL y Flexibilidad</a></li>
+        <li><a href="#punto-9" class="sidebar-link"><span class="sidebar-point-badge">09</span> 🪣 Object Storage (S3)</a></li>
+        <li><a href="#punto-10" class="sidebar-link"><span class="sidebar-point-badge">10</span> 🎯 Centrar en Relacionales</a></li>
+        <li><a href="#punto-11" class="sidebar-link"><span class="sidebar-point-badge">11</span> 🎨 Modelar es un Arte</a></li>
+        <li><a href="#punto-12" class="sidebar-link"><span class="sidebar-point-badge">12</span> ❌ La Mega-Tabla Caótica (Hacerlo Mal)</a></li>
+        <li><a href="#punto-13" class="sidebar-link"><span class="sidebar-point-badge">13</span> 💥 Duplicados e Ineficiencia</a></li>
+        <li><a href="#punto-14" class="sidebar-link"><span class="sidebar-point-badge">14</span> 🛡️ Single Source of Truth</a></li>
+        <li><a href="#punto-15" class="sidebar-link"><span class="sidebar-point-badge">15</span> 🏦 La Dirección en el Banco</a></li>
+        <li><a href="#punto-16" class="sidebar-link"><span class="sidebar-point-badge">16</span> ✅ Separar Tablas (Hacerlo Bien)</a></li>
+        <li><a href="#punto-17" class="sidebar-link"><span class="sidebar-point-badge">17</span> 📅 Históricos y Tipos de Uso</a></li>
+        <li><a href="#punto-18" class="sidebar-link"><span class="sidebar-point-badge">18</span> 🔗 El customer_id y Población 3NF</a></li>
+        <li><a href="#punto-19" class="sidebar-link"><span class="sidebar-point-badge">19</span> 🔍 INNER JOIN vs LEFT JOIN</a></li>
+        <li><a href="#punto-20" class="sidebar-link"><span class="sidebar-point-badge">20</span> 📬 La Trampa del JOIN en Cartas</a></li>
+        <li><a href="#punto-21" class="sidebar-link"><span class="sidebar-point-badge">21</span> ⏳ Histórico Temporal en Facturas</a></li>
+        <li><a href="#punto-22" class="sidebar-link"><span class="sidebar-point-badge">22</span> 📐 1NF, 2NF y 3NF en Acción</a></li>
+        <li><a href="#punto-23" class="sidebar-link"><span class="sidebar-point-badge">23</span> ⚙️ Trabajos Batch y Pipelines ETL</a></li>
+        <li><a href="#punto-24" class="sidebar-link"><span class="sidebar-point-badge">24</span> 🕸️ Neo4J y Fraude en Seguros</a></li>
+        <li><a href="#punto-25" class="sidebar-link"><span class="sidebar-point-badge">25</span> ⚡ HBase, Cassandra y Mongo</a></li>
+        <li><a href="#punto-26" class="sidebar-link"><span class="sidebar-point-badge">26</span> 🧪 Consulta SQL para Poblar HBase</a></li>
+        <li><a href="#punto-27" class="sidebar-link"><span class="sidebar-point-badge">27</span> 🔧 Phoenix, Mongoose y CQL</a></li>
+        <li><a href="#punto-28" class="sidebar-link"><span class="sidebar-point-badge">28</span> 🗑️ El Armario: Tirar al Cubo</a></li>
+        <li><a href="#punto-29" class="sidebar-link"><span class="sidebar-point-badge">29</span> 👔 El Armario Estructurado</a></li>
+        <li><a href="#punto-30" class="sidebar-link"><span class="sidebar-point-badge">30</span> ⚖️ Corolario: Arte y Trade-offs</a></li>
+      </ul>
+    </aside>
+
+    <!-- CONTENIDO CENTRAL -->
+    <main class="content-area">
+
+      <!-- Hero Banner -->
+      <section class="hero-banner">
+        <div class="hero-badge-group">
+          <span class="badge badge-cyan">🏛️ Laboratorio en Vivo</span>
+          <span class="badge badge-emerald">💻 Motores SQL en Cada Mesa</span>
+          <span class="badge badge-amber">🏦 Banco Horizonte (Datos Reales)</span>
+        </div>
+        <h1 class="hero-title">
+          Arquitectura, Normalización y <span class="gradient-text">Persistencia Práctica</span>
+        </h1>
+        <p class="hero-lead">
+          Guía de ejecución paso a paso: crearemos primero el caos del monolito desnormalizado, lo romperemos con anomalías de datos reales, lo reconstruiremos con la elegancia de 3NF, resolveremos el enigma de las facturas históricas y generaremos el pipeline SQL para alimentar almacenes de alta velocidad en milisegundos.
+        </p>
+      </section>
+
+      <!-- ==================================================================
+           BLOQUE 1: FUNDAMENTOS Y SQL BÁSICO (PUNTOS 1 AL 9)
+           ================================================================== -->
+
+      <!-- PUNTO 1 -->
+      <article id="punto-1" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 01 • De dónde venimos</span>
+          <span class="badge badge-cyan">Fundamentos</span>
+        </div>
+        <h2 class="point-title">El Punto de Partida: Lo que Ya Sabemos</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>No partimos de cero, ya sabemos lo que es un Sistema Operativo, un servidor, la capa front end de presentacion, git para colaborar...</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Ya sabemos cómo se engranan las piezas del software:
+          </p>
+          <ul>
+            <li><strong>El Sistema Operativo (SO):</strong> El árbitro que gestiona la memoria RAM y los recursos.</li>
+            <li><strong>El Servidor Web / Backend:</strong> El motor (Node, Python, Java) que procesa peticiones.</li>
+            <li><strong>El Frontend:</strong> La interfaz que ve el cliente en su pantalla.</li>
+            <li><strong>Git:</strong> La máquina del tiempo colaborativa para el código.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- PUNTO 2 -->
+      <article id="punto-2" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 02 • El Reto Tecnológico</span>
+          <span class="badge badge-cyan">Hardware</span>
+        </div>
+        <h2 class="point-title">El Aspecto Fundamental: El Almacenamiento</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Pero ahora viene un aspecto fundamental: el almacenamiento</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            La memoria RAM del servidor es ultrarrápida, pero es <strong>volátil</strong>. Si se corta el suministro eléctrico, los transistores se descargan y los datos se evaporan. Necesitamos fijar la información en discos no volátiles (SSD / NVMe / HDD).
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 3 -->
+      <article id="punto-3" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 03 • Memoria Persistente</span>
+          <span class="badge badge-cyan">Concepto</span>
+        </div>
+        <h2 class="point-title">La Memoria Persistente: El Acordarnos de Algo</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Es la memoria persistente, el acordarnos de algo</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Persistir es garantizar que un dato sobreviva al cierre del proceso o al apagado de la máquina. Es el equivalente a cuando la humanidad inventó la escritura en piedra y papel.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 4 -->
+      <article id="punto-4" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 04 • Paradigmas</span>
+          <span class="badge badge-cyan">Stateless vs Stateful</span>
+        </div>
+        <h2 class="point-title">De Stateless a Stateful</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Con esto pasamos de aplicaciones Stateless que empiezan de cero cuando apagamos el ordenador a aplicaciones statefull donde cuando volvemos a arrancar estamos donde los dejamos</div>
+        </div>
+        <div class="theory-body">
+          <div class="split-2">
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <h4 style="color: #f87171; margin-bottom: 6px;">Stateless (Sin Estado)</h4>
+              <p style="font-size: 0.9rem; color: var(--text-muted);">
+                Trata cada petición como si fuera la primera del universo. Si el servidor se apaga, no recuerda quién eres ni qué compraste.
+              </p>
+            </div>
+            <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <h4 style="color: #34d399; margin-bottom: 6px;">Stateful (Con Estado)</h4>
+              <p style="font-size: 0.9rem; color: var(--text-muted);">
+                El estado se fija en disco. Tras reiniciar el contenedor, el saldo de Elena de 3.450 € sigue intacto en el libro mayor.
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 5 -->
+      <article id="punto-5" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 05 • Abstracción</span>
+          <span class="badge badge-cyan">APIs & Cloud</span>
+        </div>
+        <h2 class="point-title">El Estado Deslocalizado y el Concepto de API</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Es más el estado ni siquiera lo tenemos que guardar en nuestro disco duro, tal y como ocurre con github podemos tener un servicio exterior que nos sirva nuestros datos por medio de una API. Git es una API, desde algún punto de vista todo son APIs cada comando de Python podría verse como tal y de hecho así es, cuando hablamos de la API de Java nos referimos a la forma estandarizada en la que el compilador va a responder e interactuar con nosotros.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            El almacenamiento no tiene por qué estar en tu ordenador. Con GitHub el estado viaja por red. Una <strong>API</strong> es el contrato estándar de interacción: la API de Java, la de Python, Git o una base de datos.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 6 -->
+      <article id="punto-6" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 06 • El Núcleo</span>
+          <span class="badge badge-cyan">Bases de Datos</span>
+        </div>
+        <h2 class="point-title">Y Aquí Aparecen las Bases de Datos</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Y aquí aparecen las bases de datos que va a ser el principal foco de atencion</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Una base de datos es mucho más que un almacén de archivos: gestiona concurrencia de miles de usuarios a la vez, garantiza que las transacciones no se corrompan ante cortes de luz (ACID) y acelera las búsquedas mediante algoritmos de indexación en milisegundos.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 7 -->
+      <article id="punto-7" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 07 • Práctica Inicial en las Mesas</span>
+          <span class="badge badge-emerald">SQL Básico (Día 1)</span>
+        </div>
+        <h2 class="point-title">Las Instrucciones Sagradas: CREATE TABLE, INSERT y SELECT</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Y SQL en particular como un lenguaje de programacion, una API para accder a nuestros datos de una forma estruturada y muy usada por la industria durante los años.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Como tenéis un motor de PostgreSQL en cada mesa, vamos a empezar ejecutando los 3 comandos elementales:
+          </p>
+          <ul>
+            <li><code>CREATE TABLE</code>: Define el plano arquitectónico (nombres de columnas y tipos de datos).</li>
+            <li><code>INSERT INTO</code>: Guarda nuevas filas en el disco duro.</li>
+            <li><code>SELECT</code>: Lee y proyecta los datos en la pantalla sin modificarlos.</li>
+          </ul>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Ejercicio 1 en las mesas: Crear tabla básica, insertar y consultar</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- 1. Crear tabla básica de prueba
+CREATE TABLE demo_cuentas (
+    id SERIAL PRIMARY KEY,
+    titular VARCHAR(100) NOT NULL,
+    saldo NUMERIC(10, 2) NOT NULL DEFAULT 0.00
+);
+
+-- 2. Insertar registros
+INSERT INTO demo_cuentas (titular, saldo) VALUES
+('Elena Navarro', 3450.00),
+('Carlos Benítez', 5200.00);
+
+-- 3. Consultar y proyectar
+SELECT id, titular, saldo FROM demo_cuentas WHERE saldo > 4000;</code></pre>
+          </div>
+
+          <h4 style="color: var(--cyan); margin: 12px 0 6px;">Resultado esperado en vuestro terminal/pgAdmin:</h4>
+          <div class="table-responsive">
+            <table class="pedagogic-table">
+              <thead>
+                <tr><th>id</th><th>titular</th><th>saldo</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>2</td><td>Carlos Benítez</td><td>5200.00</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 8 -->
+      <article id="punto-8" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 08 • Filosofía</span>
+          <span class="badge badge-violet">Ecosistema NoSQL</span>
+        </div>
+        <h2 class="point-title">No Todo es SQL: La Mente Flexible y Mongo</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Pero no todo es SQL, nosotro no vamos a ser tan ignorantes para pensar, eso, por eso introduciremos una base de datos NoSQL como Mongo, màs divertida en el uso que las clásicas relacionales, pero aqui lo que prima es una mente sensible y sonbre todo FLEXIBLE que sepa que hay miles de opciones de solucionar un problema y no nos casamos con ninguna, puede haber muchas motivaciones para elegir una u otra empezando con cual nos sentimos mejor y motivos de coste, velocidad, eficiencia, incluso dentro de la misma solución usar formas distintas.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            No caigáis en el dogma del martillo de oro. <strong>MongoDB</strong> es excelente para guardar documentos JSON completos de forma ágil, mientras que SQL es inigualable en consistencia contable.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 9 -->
+      <article id="punto-9" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 09 • Almacenamiento Plano</span>
+          <span class="badge badge-cyan">S3 / Buckets</span>
+        </div>
+        <h2 class="point-title">Object Storage: S3 y Google Buckets</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Exiten muchas otras formas de persistir, mira S3 o Google Buckets donde simplemente guardamos objetos, alguno de esos objetos podria ser el backup de otra base de datos</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            En Amazon S3 o Google Cloud Storage guardamos blobs inmutables: el backup comprimido de PostgreSQL o los contratos en PDF firmados por los clientes bancarios.
+          </p>
+        </div>
+      </article>
+
+      <!-- ==================================================================
+           BLOQUE 2: EL CASO BANCARIO Y HACERLO MAL PRIMERO (PUNTOS 10 AL 21)
+           ================================================================== -->
+
+      <!-- PUNTO 10 -->
+      <article id="punto-10" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 10 • El Enfoque</span>
+          <span class="badge badge-amber">Modelado Relacional</span>
+        </div>
+        <h2 class="point-title">Centrar el Tiro en el Modelado de Datos</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>En primer lugar vamos a centrar el tiro en las bases de datos relacionales  y el modelado de datos.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Nos sumergimos ahora en el núcleo de la ingeniería: el diseño de las tablas del <strong>Banco Horizonte</strong>.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 11 -->
+      <article id="punto-11" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 11 • La Filosofía</span>
+          <span class="badge badge-amber">Arte & Técnica</span>
+        </div>
+        <h2 class="point-title">Modelar Tiene Cierta Forma de Arte</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Modelar tiene cierta forma de arte.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Dividir en más tablas o en menos tablas cambia el rendimiento, la memoria y la facilidad de mantenimiento. Vamos a ver primero qué pasa cuando modelamos <em>sin arte</em>.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 12 -->
+      <article id="punto-12" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 12 • La Tentación del Monolito</span>
+          <span class="badge badge-rose">El Monolito Plano</span>
+        </div>
+        <h2 class="point-title">Hacerlo Mal Primero: Acoplar Persona y Teléfono a la Transacción</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Si ponemos todo a lo bruto en un solo punto puede ser muy interesante para poblar una pagina web pues nos encontramos todo lo que necesitamos en una sola fila</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Para que la clase entienda el valor del diseño, <strong>vamos a cometer primero el error en vivo</strong>.
+          </p>
+          <p>
+            Muchos programadores novatos dicen: <em>"Cada fila es una compra de tarjeta, pero como en la web necesito mostrar el nombre del cliente, su teléfono móvil y su email para mandar confirmaciones, metamos todas esas columnas de persona dentro de la tabla de transacciones"</em>.
+          </p>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Ejecutar en la mesa: Crear la tabla de transacciones monolítica</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- CREAMOS LA TABLA CON LOS DATOS DE PERSONA METIDOS DENTRO DE LA TRANSACCIÓN:
+DROP TABLE IF EXISTS transacciones_monolito CASCADE;
+
+CREATE TABLE transacciones_monolito (
+    id SERIAL PRIMARY KEY,
+    nombre_cliente VARCHAR(100),
+    dni VARCHAR(15),
+    telefono_movil VARCHAR(20),
+    email_contacto VARCHAR(100),
+    concepto_transaccion VARCHAR(120),
+    importe NUMERIC(10, 2),
+    fecha_transaccion DATE
+);
+
+-- Insertamos 4 transacciones legítimas de Elena Navarro:
+INSERT INTO transacciones_monolito 
+(nombre_cliente, dni, telefono_movil, email_contacto, concepto_transaccion, importe, fecha_transaccion) 
+VALUES
+('Elena Navarro Soler', '11223344A', '+34 611 111 222', 'elena@email.com', 'Abono Nómina Tech Corp', 3450.00, '2026-01-15'),
+('Elena Navarro Soler', '11223344A', '+34 611 111 222', 'elena@email.com', 'Compra Mercadona Gran Vía', -86.45, '2026-02-02'),
+('Elena Navarro Soler', '11223344A', '+34 611 111 222', 'elena@email.com', 'Recibo Electricidad Iberdrola', -112.30, '2026-03-05'),
+('Elena Navarro Soler', '11223344A', '+34 611 111 222', 'elena@email.com', 'Cena Restaurante El Cenador', -145.00, '2026-10-10');</code></pre>
+          </div>
+          <p>
+            A simple vista, cada fila es una transacción impecable. ¿Por qué esto es una bomba de relojería para el banco?
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 13 -->
+      <article id="punto-13" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 13 • El Diagnóstico de Diseño</span>
+          <span class="badge badge-rose">Cero Juego Operativo</span>
+        </div>
+        <h2 class="point-title">El Caos del Teléfono y del Nombre: Pérdida de Juego Operativo</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Pero esto es terriblemante ineficiente en espacio y desorganizado, habrta muchos duplicacos y se desperdiciara ingente cantidad.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            El teléfono y el nombre de una persona <strong>jamás pertenecen a la transacción</strong>. Una transacción es un evento financiero inmutable en el tiempo (cuándo ocurrió, qué concepto y cuánto dinero se movió).
+          </p>
+          <p>
+            Al mezclar los datos de la persona dentro de la transacción, nos quedamos <strong>sin juego operativo</strong>:
+          </p>
+
+          <div class="split-2">
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <h4 style="color: #f87171; margin-bottom: 6px;">📱 1. El Caos del Teléfono y la Seguridad 2FA</h4>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                El teléfono debería ser totalmente independiente de la transacción. Si Elena cambia de móvil en junio al <code>+34 699 999 999</code>: ¿a qué número envía el banco el SMS de autorización 2FA hoy? Si actualizamos solo una fila, tenemos dos teléfonos distintos para la misma persona en la misma tabla. Con una tabla independiente de teléfonos y correos podemos ver qué móviles tiene expuestos al banco, en qué fechas y sobre ellos hacer operativa limpia (alertas de fraude, avisos comerciales, SMS de seguridad).
+              </p>
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: var(--radius-sm);">
+              <h4 style="color: #f87171; margin-bottom: 6px;">⚖️ 2. El Cambio de Nombre o Razón Social</h4>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                Si una persona cambia de nombre (o una empresa cliente cambia su razón social a *"Tech Corp Ibérica S.L."*), en el monolito tendrías que hacer un <code>UPDATE</code> bloqueando 100.000 transacciones históricas en disco. En cambio, con una tabla de nombres podemos ver <strong>en qué fechas tuvo qué nombres y poder jugar con ello</strong> sin alterar las transacciones contables pasadas.
+              </p>
+            </div>
+          </div>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Demostración en vivo en la mesa: La incoherencia del teléfono</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- Elena cambia de móvil en octubre. Se registra solo en su última compra:
+UPDATE transacciones_monolito 
+SET telefono_movil = '+34 699 999 999' 
+WHERE id = 4;
+
+-- Ahora consultamos los teléfonos de Elena en la tabla:
+SELECT id, nombre_cliente, telefono_movil, concepto_transaccion, fecha_transaccion 
+FROM transacciones_monolito;</code></pre>
+          </div>
+
+          <h4 style="color: var(--cyan); margin: 12px 0 6px;">Lo que veréis en la pantalla de vuestro motor:</h4>
+          <div class="table-responsive">
+            <table class="pedagogic-table">
+              <thead>
+                <tr><th>id</th><th>nombre_cliente</th><th>telefono_movil</th><th>concepto</th><th>fecha</th><th>Diagnóstico de Inconsistencia</th></tr>
+              </thead>
+              <tbody>
+                <tr class="row-bad"><td>1</td><td>Elena Navarro Soler</td><td>+34 611 111 222</td><td>Nómina</td><td>2026-01-15</td><td>Teléfono Antiguo</td></tr>
+                <tr class="row-bad"><td>2</td><td>Elena Navarro Soler</td><td>+34 611 111 222</td><td>Mercadona</td><td>2026-02-02</td><td>Teléfono Antiguo</td></tr>
+                <tr class="row-bad"><td>3</td><td>Elena Navarro Soler</td><td>+34 611 111 222</td><td>Iberdrola</td><td>2026-03-05</td><td>Teléfono Antiguo</td></tr>
+                <tr class="row-bad"><td>4</td><td>Elena Navarro Soler</td><td>+34 699 999 999</td><td>Restaurante</td><td>2026-10-10</td><td>🚨 Teléfono Nuevo (¡Incoherencia!)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="alert-box alert-rose">
+            🚨 <strong>Pérdida total de juego operativo:</strong> No sabemos cuándo empezó a ser válido el nuevo teléfono, no podemos registrar un segundo teléfono de empresa y hemos convertido una tabla contable en un almacén caótico de datos de contacto.
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 14 -->
+      <article id="punto-14" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 14 • El Principio de Diseño</span>
+          <span class="badge badge-emerald">Single Source of Truth</span>
+        </div>
+        <h2 class="point-title">La Solución de Diseño: Tablas de Contacto e Identidad con Fechas</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Aparte al no haber una sola base de verdad podemos tener diferentes versiones del mismo dato en distintas zonas</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            <strong>¿Cómo se diseña esto con cabeza?</strong>
+          </p>
+          <ul>
+            <li><strong>La tabla de Personas/Clientes (<code>customers</code>):</strong> Almacena la entidad jurídica o humana con su identificador canónico (<code>tax_id</code> o DNI).</li>
+            <li><strong>Una tabla dedicada de Teléfonos/Correos o Viviendas:</strong> Donde cada registro tiene su <code>valid_from</code> y <code>valid_to</code>. Así el banco tiene <em>juego operativo</em>: sabe qué teléfonos y qué correos tiene expuestos al banco la persona, en qué fechas exactas, cuál está activo hoy para recibir avisos de seguridad y cuál era el vigente en el momento de emitir una factura.</li>
+            <li><strong>La tabla de Transacciones (<code>transactions</code>):</strong> Solo guarda los números del dinero y apunta mediante un simple <code>customer_id</code> a la persona. Si Elena cambia de móvil o de casa, <strong>no tocamos ni una sola de sus 100.000 transacciones pasadas</strong>.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- PUNTO 15 -->
+      <article id="punto-15" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 15 • El Caso del Banco</span>
+          <span class="badge badge-amber">Problema Real</span>
+        </div>
+        <h2 class="point-title">La Dirección Dispersa en Facturas y Tarjetas</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Por ejemplo en un banco la direccion podria estar en las facturas, podria estar en los movimientos de tarjeta ...</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Copiar la dirección como texto en facturas, tarjetas y préstamos obliga a sincronizar N puntos a la vez. La solución es separar entidades.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 16 -->
+      <article id="punto-16" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 16 • Hacerlo Bien</span>
+          <span class="badge badge-emerald">Separar Tablas</span>
+        </div>
+        <h2 class="point-title">Separar la Tabla de Viviendas con Reglas Estrictas</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Pero es más lógico tener una tabla dedicada solo a las direcciones asociada a una persona que para cambiar tenga unas reglas extrictas</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            A partir de este punto, **todo empieza a cobrar sentido**. Creamos una tabla dedicada a viviendas vinculada a <code>customers</code>:
+          </p>
+          <div class="entity-diagram-card">
+            [CUSTOMERS] (id PK) ── 1 : N ──< [CUSTOMER_ADDRESSES] (customer_id FK)
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 17 -->
+      <article id="punto-17" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 17 • Dimensión Temporal</span>
+          <span class="badge badge-emerald">Históricos (SCD Tipo 2)</span>
+        </div>
+        <h2 class="point-title">Histórico de Direcciones y Tipos de Uso</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Ademas en esta tabla podemos ver en diferentes periodos de tiempo que direccion a ha tenido una persona como principales, de correspondencia, etc...</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Añadimos campos para tipificar si es residencia habitual o veraneo, y controlamos la vigencia temporal con <code>valid_from</code> y <code>valid_to</code>:
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 18 -->
+      <article id="punto-18" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 18 • El Esquema Limpio</span>
+          <span class="badge badge-emerald">Población Completa 3NF</span>
+        </div>
+        <h2 class="point-title">Creación y Población de las 3 Tablas (3 Clientes, 10 Casas, 10 Transacciones)</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>De esa forma en la factura habria una referencia al customer_id y este a su vez estaria referenciado en la tabla de viviendas</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            ¡Momento cumbre! Copiad y ejecutad este bloque completo en vuestras mesas para tener el banco real funcionando con 3NF:
+          </p>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Ejecutar en la mesa: DDL y DML Completo del Banco</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- 1. LIMPIEZA
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS customer_addresses CASCADE;
+DROP TABLE IF EXISTS customers CASCADE;
+
+-- 2. TABLA DE CLIENTES
+CREATE TABLE customers (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    tax_id VARCHAR(15) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL
+);
+
+-- 3. TABLA DE DIRECCIONES (VIVIENDAS)
+CREATE TABLE customer_addresses (
+    id SERIAL PRIMARY KEY,
+    customer_id INT NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    address_type VARCHAR(30) NOT NULL,
+    street_address VARCHAR(150) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    postal_code VARCHAR(10) NOT NULL,
+    is_correspondence BOOLEAN NOT NULL DEFAULT FALSE,
+    valid_from DATE NOT NULL,
+    valid_to DATE -- NULL si es la dirección activa hoy
+);
+
+-- 4. TABLA DE TRANSACCIONES / MOVIMIENTOS
+CREATE TABLE transactions (
+    id BIGSERIAL PRIMARY KEY,
+    customer_id INT NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+    account_iban VARCHAR(34) NOT NULL,
+    concept VARCHAR(120) NOT NULL,
+    category VARCHAR(40) NOT NULL,
+    amount NUMERIC(12, 2) NOT NULL,
+    transaction_timestamp TIMESTAMPTZ NOT NULL
+);
+
+-- 5. POBLACIÓN DE 3 CLIENTES
+INSERT INTO customers (id, full_name, tax_id, email, phone) VALUES
+(1, 'Elena Navarro Soler', '11223344A', 'elena.navarro@email.com', '+34 611 111 222'),
+(2, 'Carlos Benítez Vega', '22334455B', 'carlos.benitez@email.com', '+34 622 333 444'),
+(3, 'Lucía Morales Prado', '33445566C', 'lucia.morales@email.com', '+34 633 555 666');
+
+-- 6. POBLACIÓN DE 10 VIVIENDAS (3-4 por cliente con histórico)
+INSERT INTO customer_addresses 
+(customer_id, address_type, street_address, city, postal_code, is_correspondence, valid_from, valid_to) 
+VALUES
+-- Elena (4 casas): Nótese que hasta 2020 vivía en C/ Mayor 102
+(1, 'Principal', 'Calle Gran Vía 45, 4ºB', 'Madrid', '28013', TRUE, '2020-01-15', NULL),
+(1, 'Veraneo', 'Paseo Marítimo 12', 'Alicante', '03001', FALSE, '2022-06-01', NULL),
+(1, 'Inversión', 'Calle Sierpes 8', 'Sevilla', '41004', FALSE, '2023-09-10', NULL),
+(1, 'Histórica Anterior', 'Calle Mayor 102, 2ºC', 'Madrid', '28005', TRUE, '2015-02-01', '2020-01-14'),
+
+-- Carlos (3 casas)
+(2, 'Principal', 'Avinguda Diagonal 500', 'Barcelona', '08006', TRUE, '2018-04-10', NULL),
+(2, 'Veraneo', 'Camí de Ronda 22', 'Cadaqués', '17488', FALSE, '2021-07-15', NULL),
+(2, 'Despacho', 'Rambla Catalunya 40', 'Barcelona', '08007', FALSE, '2019-11-01', NULL),
+
+-- Lucía (3 casas)
+(3, 'Principal', 'Calle Colón 15', 'Valencia', '46004', TRUE, '2021-03-01', NULL),
+(3, 'Veraneo', 'Avenida del Faro 5', 'Dénia', '03700', FALSE, '2023-05-20', NULL),
+(3, 'Inversión', 'Calle Uría 30', 'Oviedo', '33003', FALSE, '2024-01-15', NULL);
+
+-- 7. POBLACIÓN DE 10 TRANSACCIONES REALES (Con fechas en diferentes años)
+INSERT INTO transactions 
+(customer_id, account_iban, concept, category, amount, transaction_timestamp) 
+VALUES
+-- Elena (Transacción antigua en 2018 y transacciones recientes en 2026)
+(1, 'ES91 2100 0418 4502 0005 1111', 'Factura Antigua Préstamo', 'Comisiones', -120.00, '2018-06-15 10:00:00+02'),
+(1, 'ES91 2100 0418 4502 0005 1111', 'Abono Nómina Tech Corp', 'Nómina', 3450.00, '2026-10-01 08:30:00+02'),
+(1, 'ES91 2100 0418 4502 0005 1111', 'Compra Mercadona Gran Vía', 'Supermercado', -86.45, '2026-10-02 18:15:00+02'),
+(1, 'ES91 2100 0418 4502 0005 1111', 'Cena Restaurante El Cenador', 'Ocio', -145.00, '2026-10-10 21:45:00+02'),
+
+-- Carlos
+(2, 'ES91 2100 0418 4502 0005 2222', 'Factura Cliente Consultoría', 'Nómina', 5200.00, '2026-10-01 11:00:00+02'),
+(2, 'ES91 2100 0418 4502 0005 2222', 'Gasolinera Repsol Diagonal', 'Transporte', -75.50, '2026-10-03 09:20:00+02'),
+(2, 'ES91 2100 0418 4502 0005 2222', 'Seguro Médico Sanitas', 'Salud', -85.00, '2026-10-07 07:45:00+02'),
+
+-- Lucía
+(3, 'ES91 2100 0418 4502 0005 3333', 'Transferencia Nómina Empresa', 'Nómina', 2850.00, '2026-10-01 09:00:00+02'),
+(3, 'ES91 2100 0418 4502 0005 3333', 'Farmacia Central Valencia', 'Salud', -34.20, '2026-10-04 12:10:00+02'),
+(3, 'ES91 2100 0418 4502 0005 3333', 'Compra Online Fnac Libros', 'Ocio', -62.80, '2026-10-08 16:30:00+02');</code></pre>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 19 -->
+      <article id="punto-19" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 19 • Teoría de Cruces</span>
+          <span class="badge badge-cyan">INNER JOIN vs LEFT JOIN</span>
+        </div>
+        <h2 class="point-title">INNER JOIN vs LEFT JOIN: Cuándo Interesa Cada Uno</h2>
+        <div class="theory-body">
+          <p>
+            Mucha gente se confunde entre <code>INNER JOIN</code> y <code>LEFT JOIN</code>. La diferencia es vital para no ocultar datos sin querer:
+          </p>
+          <ul>
+            <li><strong>INNER JOIN (Estricto):</strong> Solo devuelve las filas donde haya coincidencia en AMBOS lados. Si un cliente nuevo se da de alta en el banco pero aún no tiene ninguna transacción, <strong>¡desaparece del informe!</strong></li>
+            <li><strong>LEFT JOIN (Conservador):</strong> Mantiene a TODOS los clientes de la tabla izquierda, tengan o no transacciones. Si no tienen, rellena las columnas derechas con <code>NULL</code>.</li>
+          </ul>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Prueba en la mesa: Diferencia entre INNER y LEFT JOIN</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- Si insertamos un cliente nuevo sin transacciones:
+INSERT INTO customers (id, full_name, tax_id, email, phone) 
+VALUES (4, 'David Ruiz Gómez', '44556677D', 'david@email.com', '+34 644 777 888');
+
+-- 1. Con INNER JOIN: David NO aparece (solo 10 filas)
+SELECT c.full_name, t.concept, t.amount
+FROM customers c
+INNER JOIN transactions t ON c.id = t.customer_id;
+
+-- 2. Con LEFT JOIN: David SÍ aparece con NULL (11 filas)
+SELECT c.full_name, COALESCE(t.concept, 'Sin transacciones') AS concepto, COALESCE(t.amount, 0.00) AS importe
+FROM customers c
+LEFT JOIN transactions t ON c.id = t.customer_id;</code></pre>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 20 -->
+      <article id="punto-20" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 20 • La Trampa en Vivo</span>
+          <span class="badge badge-amber">Explosión de Filas</span>
+        </div>
+        <h2 class="point-title">La Trampa de los Duplicados al Cruzar con Direcciones</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>A la hora de enviar correspondendia al hacer join para saber la direccion de una persona apareceran duplicados y tendremos que tener un filtrado con un where para quedarnos con una unica y exclusiva direccion que a lo mejor tenga activado un flag de direccion de correspindencia que solo debe ser una</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Ejecutad en vuestras mesas la consulta sin filtro y luego con filtro:
+          </p>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Prueba en la mesa: Colapsar los duplicados con is_correspondence</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- 1. LA CONSULTA QUE MULTIPLICA (Peligro: Elena sale 16 veces)
+SELECT c.full_name, t.concept, t.amount, a.street_address
+FROM customers c
+JOIN transactions t ON c.id = t.customer_id
+JOIN customer_addresses a ON c.id = a.customer_id
+WHERE c.id = 1;
+
+-- 2. LA CONSULTA LIMPIA CON REGLA DE NEGOCIO (Exactamente 4 movimientos)
+SELECT c.full_name, t.concept, t.amount, a.street_address AS direccion_envio
+FROM customers c
+JOIN transactions t ON c.id = t.customer_id
+JOIN customer_addresses a 
+    ON c.id = a.customer_id 
+   AND a.is_correspondence = TRUE 
+   AND a.valid_to IS NULL
+WHERE c.id = 1;</code></pre>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 21 -->
+      <article id="punto-21" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 21 • Dimensión Temporal</span>
+          <span class="badge badge-violet">El Desafío de las Facturas Históricas</span>
+        </div>
+        <h2 class="point-title">El Gran Problema: ¿A Qué Dirección se Envió una Factura Antigua?</h2>
+        <div class="theory-body">
+          <p>
+            ¡Atención a esta problemática de banca real!
+          </p>
+          <p>
+            Imaginad que hacienda o un auditor nos pide el recibo de la transacción de Elena del <strong>15 de junio de 2018</strong> (<em>Factura Antigua Préstamo</em>).
+          </p>
+          <ul>
+            <li>En 2018, Elena vivía en la <strong>Calle Mayor 102</strong> (donde residió de 2015 a enero de 2020).</li>
+            <li>En enero de 2020 se mudó a <strong>Gran Vía 45</strong>.</li>
+          </ul>
+          <p>
+            Si en la query filtramos alegremente con <code>a.valid_to IS NULL</code>, ¡el recibo de 2018 dirá falsamente que se envió a Gran Vía 45, cuando Elena ni siquiera vivía allí en 2018!
+          </p>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Consulta Maestra: Filtrar por la Casa que Estaba ACTIVA en la Fecha del Movimiento</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>SELECT 
+    c.full_name,
+    t.concept AS movimiento,
+    t.amount,
+    t.transaction_timestamp::DATE AS fecha_factura,
+    a.street_address AS direccion_historica_real,
+    a.valid_from,
+    COALESCE(a.valid_to::TEXT, 'Vigente hoy') AS hasta_fecha
+FROM customers c
+JOIN transactions t ON c.id = t.customer_id
+JOIN customer_addresses a 
+    ON c.id = a.customer_id 
+   AND a.is_correspondence = TRUE
+   -- LA CONDICIÓN TEMPORAL CRÍTICA:
+   AND t.transaction_timestamp::DATE >= a.valid_from 
+   AND (a.valid_to IS NULL OR t.transaction_timestamp::DATE <= a.valid_to)
+WHERE c.id = 1
+ORDER BY t.transaction_timestamp ASC;</code></pre>
+          </div>
+
+          <h4 style="color: var(--cyan); margin: 12px 0 6px;">Lo que veréis en la pantalla de vuestro motor:</h4>
+          <div class="table-responsive">
+            <table class="pedagogic-table">
+              <thead>
+                <tr><th>fecha_factura</th><th>movimiento</th><th>importe</th><th>direccion_historica_real</th><th>Explicación</th></tr>
+              </thead>
+              <tbody>
+                <tr class="row-good">
+                  <td>2018-06-15</td>
+                  <td>Factura Antigua Préstamo</td>
+                  <td>-120.00</td>
+                  <td><strong>Calle Mayor 102</strong></td>
+                  <td>✅ Correcto: En 2018 vivía en Mayor 102</td>
+                </tr>
+                <tr class="row-good">
+                  <td>2026-10-01</td>
+                  <td>Abono Nómina Tech Corp</td>
+                  <td>+3450.00</td>
+                  <td><strong>Calle Gran Vía 45</strong></td>
+                  <td>✅ Correcto: En 2026 ya vive en Gran Vía</td>
+                </tr>
+                <tr class="row-good">
+                  <td>2026-10-02</td>
+                  <td>Compra Mercadona Gran Vía</td>
+                  <td>-86.45</td>
+                  <td><strong>Calle Gran Vía 45</strong></td>
+                  <td>✅ Correcto: En 2026 ya vive en Gran Vía</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 22 -->
+      <article id="punto-22" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 22 • Formas Normales</span>
+          <span class="badge badge-emerald">1NF, 2NF y 3NF en Acción</span>
+        </div>
+        <h2 class="point-title">Cómo las Formas Normales Crean Orden Progresivo</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Algo muy común en arquitectura es tener una arquitectura como la que hemos descrito y que respete a modo de ejemplo 1nf, 2nf y 3nf, pero más que eso sobre todo esté pensada con la cabeza</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Veamos visualmente cómo la aplicación sucesiva de las tres formas normales transforma el caos en orden perfecto:
+          </p>
+          <div class="split-2">
+            <div style="background: rgba(15, 23, 42, 0.7); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+              <h4 style="color: var(--amber); margin-bottom: 6px;">1. De Monolito a 1NF (Atomicidad)</h4>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                Erradicamos listas separadas por comas. Cada celda tiene un único valor. Nada de <code>direcciones = 'Gran Vía, Playa, Sierpes'</code>.
+              </p>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.7); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+              <h4 style="color: var(--violet); margin-bottom: 6px;">2. De 1NF a 2NF (Dependencia de la Clave)</h4>
+              <p style="font-size: 0.88rem; color: var(--text-muted);">
+                Separamos en tablas distintas: <code>customers</code> (identidad), <code>customer_addresses</code> (viviendas) y <code>transactions</code> (dinero).
+              </p>
+            </div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.7); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <h4 style="color: var(--emerald); margin-bottom: 6px;">3. A 3NF (Cero Dependencias Transitivas)</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">
+              En la dirección, la ciudad y provincia dependen funcionalmente del código postal, no del ID de la persona. Si creamos una tabla maestra de <code>codigos_postales (cp, ciudad, provincia)</code>, alcanzamos la 3NF pura.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- ==================================================================
+           BLOQUE 3: ALTA ESCALA, ETLs Y NoSQL (PUNTOS 23 AL 27)
+           ================================================================== -->
+
+      <!-- PUNTO 23 -->
+      <article id="punto-23" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 23 • Procesamiento Masivo</span>
+          <span class="badge badge-emerald">ETL & Batch</span>
+        </div>
+        <h2 class="point-title">Trabajos Batch y Pipelines ETL</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>A esta arquitectura se sumaria un grupo de trabajos batch que mediante etl mediante un conjunto de joins poblarian otras tablas que se usarian para temas concretos como poblar un front end que requiere respuestas en milisegundos y no puede estar esperando horas para hacer una serie de tranajos cruzados</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Una base de datos transaccional 3NF es perfecta para que nadie nos robe un céntimo. Pero cuando 5 millones de clientes abren la app del banco a la vez, <strong>hacer este JOIN con fechas en cada petición tumbaría la base de datos</strong>.
+          </p>
+          <p>
+            Por eso usamos un **proceso Batch nocturno (ETL)**: mastica la selva de JOINs una sola vez por la noche y prepara los datos en una tabla desnormalizada de respuesta instantánea.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 24 -->
+      <article id="punto-24" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 24 • Grafos & Seguridad</span>
+          <span class="badge badge-emerald">Neo4J & Fraude</span>
+        </div>
+        <h2 class="point-title">Neo4J: Detección Automática de Fraude en Seguros</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>La máxima expresión de esto es una base de datos de grafos como Noe4J ideal para hacer relaciones utiles en deteccion automatica de fraude mediante relaciones tipo si la persona A no tiene multas y tiene la poliza y la persona B tiene una relacion con ella y tiene muchas multas, entonces alerta de fraude en el seguro del coche...</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            <strong>¿Qué es Neo4J?</strong> Es un motor de grafos donde las entidades son Nodos y las relaciones son flechas de primer nivel.
+          </p>
+          <p>
+            <strong>La query de Cypher para cazar el fraude:</strong>
+          </p>
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">Consulta de Fraude en Cypher (Neo4J)</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>MATCH (elena:Person)-[:HOLDS_POLICY]->(pol:Policy)-[:COVERS]->(car:Vehicle)
+MATCH (marcos:Person)-[:REPORTED_ACCIDENT]->(car)
+MATCH (elena)-[:LIVES_AT]->(dir:Address)<-[:LIVES_AT]-(marcos)
+WHERE elena.fines = 0 AND marcos.license_revoked = TRUE
+RETURN "🚨 ALERTA: Conductor suspendido convive con tomador limpio" AS alerta,
+       elena.name AS Tomador_Oficial, 
+       marcos.name AS Conductor_Riesgo;</code></pre>
+          </div>
+        </div>
+      </article>
+
+      <!-- PUNTO 25 -->
+      <article id="punto-25" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 25 • Motores de Alta Velocidad</span>
+          <span class="badge badge-emerald">HBase, Cassandra & Mongo</span>
+        </div>
+        <h2 class="point-title">Poblar Mongo, Cassandra o HBase para Respuestas Inmediatas</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Pero sin ir al extremo de Neo4J poblar un Mongo, un Cassandra o un HBASE con los datos que necesitamos para por ejemplo un front end sencillo dar respuestass inmediatas para por ejemplo cargar los movimientos de una persona en su cuenta bancaria</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Para que la pantalla del móvil cargue en <strong>3 milisegundos</strong>, cargamos los datos ya combinados en un motor NoSQL.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 26 -->
+      <article id="punto-26" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 26 • El ETL en Vivo</span>
+          <span class="badge badge-emerald">SQL de Transformación</span>
+        </div>
+        <h2 class="point-title">El Código SQL del ETL para Poblar HBase</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Para ese caso más normal cada dia podemos hacer los ETL y de la selva de joins que implica la arquitectura inteligente, tendriamos algo sencillo en HBASE</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            <strong>¿Cómo preparamos los datos con SQL para que HBase o Cassandra los lean en 1 milisegundo?</strong>
+          </p>
+          <p>
+            Generamos una tabla precalculada donde la clave de fila (**RowKey**) utiliza el **Timestamp Invertido** (`922337036854775807 - epoch`):
+          </p>
+
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-box-title">💻 Ejecutar en la mesa: La Consulta SQL del Pipeline ETL</span>
+              <button class="btn-copy" onclick="copySnippet(this)">Copiar</button>
+            </div>
+            <pre class="code-text"><code>-- CREAMOS LA TABLA QUE ALIMENTARÁ A HBASE (Precalculada por el ETL nocturno)
+DROP TABLE IF EXISTS etl_hbase_feed CASCADE;
+
+CREATE TABLE etl_hbase_feed AS
+SELECT 
+    -- FÓRMULA DE ROWKEY INVERTIDA PARA HBASE:
+    'CUST#' || LPAD(c.id::TEXT, 5, '0') || '_' || 
+    (922337036854775807 - EXTRACT(EPOCH FROM t.transaction_timestamp)::BIGINT)::TEXT AS hbase_rowkey,
+    
+    -- Familia personal_data:
+    c.full_name AS personal_name,
+    c.tax_id AS personal_dni,
+    a.street_address AS personal_address,
+    
+    -- Familia financial:
+    t.concept AS tx_concept,
+    t.category AS tx_category,
+    t.amount AS tx_amount,
+    t.transaction_timestamp AS tx_timestamp
+FROM customers c
+JOIN transactions t ON c.id = t.customer_id
+JOIN customer_addresses a 
+    ON c.id = a.customer_id 
+   AND a.is_correspondence = TRUE 
+   AND a.valid_to IS NULL;
+
+-- Consultamos la tabla lista para HBase:
+SELECT hbase_rowkey, personal_name, tx_concept, tx_amount FROM etl_hbase_feed ORDER BY hbase_rowkey ASC;</code></pre>
+          </div>
+
+          <h4 style="color: var(--cyan); margin: 12px 0 6px;">Resultado del ETL listo para ingesta en HBase:</h4>
+          <div class="table-responsive">
+            <table class="pedagogic-table">
+              <thead>
+                <tr><th>hbase_rowkey</th><th>personal_name</th><th>tx_concept</th><th>tx_amount</th></tr>
+              </thead>
+              <tbody>
+                <tr class="row-good">
+                  <td><code>CUST#00001_922337035061611007</code></td>
+                  <td>Elena Navarro Soler</td>
+                  <td>Cena Restaurante El Cenador (10 Oct)</td>
+                  <td>-145.00</td>
+                </tr>
+                <tr class="row-good">
+                  <td><code>CUST#00001_922337035062301007</code></td>
+                  <td>Elena Navarro Soler</td>
+                  <td>Compra Mercadona Gran Vía (02 Oct)</td>
+                  <td>-86.45</td>
+                </tr>
+                <tr class="row-good">
+                  <td><code>CUST#00001_922337035062335807</code></td>
+                  <td>Elena Navarro Soler</td>
+                  <td>Abono Nómina Tech Corp (01 Oct)</td>
+                  <td>+3450.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--emerald);">
+            ⚡ Fijaos en el orden: gracias a la RowKey invertida, la cena del 10 de octubre queda matemáticamente <strong>la primera fila de la tabla</strong>. Cuando el móvil pide los movimientos de Elena, HBase lee los primeros bloques de disco en <strong>1 milisegundo exacto</strong> sin ordenar nada.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 27 -->
+      <article id="punto-27" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 27 • Capas de Abstracción</span>
+          <span class="badge badge-emerald">Phoenix, Mongoose & CQL</span>
+        </div>
+        <h2 class="point-title">Phoenix, Mongoose y CQL: El Retorno al Orden</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>A HBASE se le puede dar cierto sentimiento de SQL con Phoenix asimismo Mongo tiene proyectos como Monggose que tambien cierran el esquema y Cassandra que decir que ya tiene da partida CQL que es un SQL reducido sin joins ya que estas bases de datos NoSQL no estan pensadas para hacer joins si bien como veremos en mongo se puede hacer referencia a otros documentos que en el findo es un join pero esto nos complica la vida.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            NoSQL nació prometiendo libertad sin esquemas. Pero en las empresas reales, la anarquía generó datos corruptos. Por eso surgieron estas herramientas:
+          </p>
+          <ul>
+            <li><strong>Apache Phoenix:</strong> Te permite lanzar consultas <code>SELECT * FROM bank_statements WHERE rowkey LIKE 'CUST#00001_%'</code> sobre HBase como si fuera PostgreSQL.</li>
+            <li><strong>Mongoose:</strong> En Node.js con MongoDB, obliga a definir campos requeridos (<code>required: true</code>) y tipos de datos en el código.</li>
+            <li><strong>CQL en Cassandra:</strong> Parece SQL pero <strong>prohíbe los JOINs</strong> para no arruinar la escalabilidad horizontal.</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- ==================================================================
+           BLOQUE 4: EL ARMARIO Y LOS TRADE-OFFS (PUNTOS 28 AL 30)
+           ================================================================== -->
+
+      <!-- PUNTO 28 -->
+      <article id="punto-28" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 28 • La Metáfora</span>
+          <span class="badge badge-violet">El Armario (Cubo Caótico)</span>
+        </div>
+        <h2 class="point-title">La Metáfora del Armario: Tirar Todo al Cubo</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>De todo este relato vemos el corolario final, se puede ver como la gestion de nuestro armario, si al llegar a casa echamos todo al cubo no tardamos ni medio segundo en poner algo en el armario pero nos llevara un siglo encontrarlo.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Si tiras toda la ropa al cubo:
+          </p>
+          <ul>
+            <li><strong>Escritura (INSERT):</strong> 0.1 segundos (súper veloz).</li>
+            <li><strong>Lectura (SELECT):</strong> 45 minutos revolviendo todo el montón con frustración (<em>Seq Scan de disco</em>).</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- PUNTO 29 -->
+      <article id="punto-29" class="lecture-point">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 29 • El Armario Ordenado</span>
+          <span class="badge badge-violet">SQL 3NF</span>
+        </div>
+        <h2 class="point-title">El Armario Estructurado: Invertir en Orden</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Asimismo si somos pulcros y tenemos un armario muy estructurado nos costará mantener la estructura y ya no es inmediato poner algo en el armario pero seremos muy eficientes en sacarlo</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Si doblas la ropa, pones perchas y organizas los cajones:
+          </p>
+          <ul>
+            <li><strong>Escritura (INSERT):</strong> Cuesta 3 minutos ordenar al llegar.</li>
+            <li><strong>Lectura (SELECT):</strong> Abres el cajón de calcetines y lo sacas en <strong>1 segundo</strong> (<em>Index Scan B-Tree</em>).</li>
+          </ul>
+          <p>
+            Esto es exactamente el modelo relacional normalizado.
+          </p>
+        </div>
+      </article>
+
+      <!-- PUNTO 30 -->
+      <article id="punto-30" class="lecture-point" style="border: 2px solid var(--cyan);">
+        <div class="point-header">
+          <span class="point-number-tag">Punto 30 • Corolario Maestro</span>
+          <span class="badge badge-cyan">Conclusión Final</span>
+        </div>
+        <h2 class="point-title">Esto es un Arte y Está Lleno de Trade-Offs</h2>
+        <div class="teacher-quote-box">
+          <span class="quote-icon">“</span>
+          <div>Igualmente con SQL tenemos que mantener una estructura y nos cuesta un mundo tener la informacion a base de joins mientras que en NoSQL las consultas son inmediatas e insertar es inmediato a cambio ocupamos mucho espacio. Asimismo en Mongo por ejemplo como tenemos varios nodos el esperar que el dato haya llegado a todos es muy costoso pero si no esperamos puede haber inconsistencia. Debe quedar claro que esto es un arte y esta lleno de trade offs.</div>
+        </div>
+        <div class="theory-body">
+          <p>
+            Todo en arquitectura es un equilibrio de compromisos (<strong>trade-offs</strong>):
+          </p>
+          <div class="table-responsive">
+            <table class="pedagogic-table">
+              <thead>
+                <tr><th>Decisión Arquitectónica</th><th>Lo que Ganas</th><th>El Precio que Pagas</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>SQL Normalizado (Postgres)</strong></td>
+                  <td>Cero duplicados, verdad matemática absoluta (ACID).</td>
+                  <td>Coste de CPU y memoria en JOINs complejos.</td>
+                </tr>
+                <tr>
+                  <td><strong>NoSQL Desnormalizado (HBase / Cassandra)</strong></td>
+                  <td>Lecturas en 1 ms para la app móvil y escrituras masivas.</td>
+                  <td>Consumo enorme de disco duro y riesgo de desincronización.</td>
+                </tr>
+                <tr>
+                  <td><strong>Mongo Write Concern w: 'majority'</strong></td>
+                  <td>El dinero nunca se pierde ante fallos de red.</td>
+                  <td>Latencia de red: esperar a la confirmación de la mayoría de nodos.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size: 1.1rem; color: #fff; margin-top: 18px;">
+            🎓 <strong>Mensaje final para los alumnos:</strong> La arquitectura de datos no consiste en casarse con una tecnología, sino en saber cómo orquestar PostgreSQL para el libro mayor, pipelines ETL para transformar datos y almacenes especializados como HBase o Neo4J para servir al mundo a la velocidad de la luz.
+          </p>
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <script>
+    // Barra de progreso y seguimiento de scroll
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progress-tracker').style.width = scrolled + '%';
+
+      // Iluminar enlace activo en la sidebar
+      const points = document.querySelectorAll('article.lecture-point');
+      const links = document.querySelectorAll('.sidebar-link');
+      let currentId = '';
+
+      points.forEach(point => {
+        const top = point.offsetTop - 140;
+        if (window.pageYOffset >= top) {
+          currentId = point.getAttribute('id');
+        }
+      });
+
+      links.forEach(l => {
+        l.classList.remove('active');
+        if (l.getAttribute('href') === '#' + currentId) {
+          l.classList.add('active');
+        }
+      });
+    });
+
+    // Copiar código al portapapeles
+    function copySnippet(btn) {
+      const code = btn.closest('.code-box').querySelector('pre code').innerText;
+      navigator.clipboard.writeText(code);
+      const originalText = btn.innerText;
+      btn.innerText = "¡Copiado!";
+      btn.style.background = "#10b981";
+      btn.style.color = "#fff";
+      setTimeout(() => {
+        btn.innerText = originalText;
+        btn.style.background = "";
+        btn.style.color = "";
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
