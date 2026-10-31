@@ -206,7 +206,7 @@ sequenceDiagram
     Kernel-->>Servidor: Despierta a accept() con un NUEVO socket (fd_sesion)
     
     Note over Servidor,Cliente: 3. Comunicación Activa
-    Cliente->>Servidor: send(fd_cliente, "SELECT...")
+    Cliente->>Servidor: send(fd_cliente, SELECT...)
     Servidor->>Cliente: recv(fd_sesion) -> procesa -> send(fd_sesion, filas)
 ```
 
@@ -280,15 +280,15 @@ sequenceDiagram
 
     rect rgb(235, 245, 255)
         Note over C,S: FASE 1: Conexión Fiable de Red (Handshake TCP)
-        C->>S: [SYN] Iniciemos flujo en el puerto 3306
-        S->>C: [SYN, ACK] Recibido, confirmo sincronización
-        C->>S: [ACK] Canal TCP establecido
+        C->>S: SYN Iniciemos flujo en el puerto 3306
+        S->>C: SYN ACK Recibido, confirmo sincronización
+        C->>S: ACK Canal TCP establecido
     end
 
     rect rgb(255, 245, 235)
         Note over C,S: FASE 2: Saludo Inicial de MySQL (Protocol Handshake)
-        S->>C: Initial Handshake Packet (Versión 8.4, auth-plugin: caching_sha2_password, Capabilities)
-        C->>S: SSLRequest Packet (¡Quiero cifrar la conversación con TLS!)
+        S->>C: Initial Handshake Packet (Versión 8.4, auth-plugin caching_sha2_password)
+        C->>S: SSLRequest Packet (Quiero cifrar la conversación con TLS)
     end
 
     rect rgb(245, 255, 235)
@@ -301,13 +301,13 @@ sequenceDiagram
 
     rect rgb(255, 235, 245)
         Note over C,S: FASE 4: Autenticación de Usuario (Protegida por TLS)
-        C->>S: HandshakeResponse41 (Usuario: 'app', Clave hasheada con SHA-256, DB: 'academia')
+        C->>S: HandshakeResponse41 (Usuario app, Clave hasheada con SHA-256)
         S->>C: OK Packet (Autenticación exitosa)
     end
 
     rect rgb(240, 240, 240)
-        Note over C,S: FASE 5: ¡Por fin! Ejecución de Comandos SQL
-        C->>S: COM_QUERY: "SELECT 1;" (Cifrado con TLS)
+        Note over C,S: FASE 5: Ejecución de Comandos SQL
+        C->>S: COM_QUERY SELECT 1 (Cifrado con TLS)
         S->>C: Column Definition + Row Data: 1 (Cifrado con TLS)
     end
 ```

@@ -522,19 +522,19 @@ sequenceDiagram
     actor App as Aplicación Backend
     participant DB as Motor InnoDB
 
-    App->>DB: START TRANSACTION;
-    App->>DB: INSERT INTO alumno (id, nombre) VALUES (10, 'Carlos'); -- OK
-    App->>DB: SAVEPOINT punto1;
+    App->>DB: START TRANSACTION
+    App->>DB: INSERT INTO alumno (id, nombre) VALUES (10, Carlos)
+    App->>DB: SAVEPOINT punto1
     
     Note over App,DB: Intentamos una operación arriesgada
-    App->>DB: INSERT INTO matricula VALUES (200, 999, 'SQL'); -- Alumno 999 NO EXISTE
+    App->>DB: INSERT INTO matricula VALUES (200, 999, SQL)
     DB-->>App: ERROR 1452: Foreign key constraint fails
     
     Note over App,DB: Rescatamos la transacción volviendo al Savepoint
-    App->>DB: ROLLBACK TO SAVEPOINT punto1;
+    App->>DB: ROLLBACK TO SAVEPOINT punto1
     
-    App->>DB: INSERT INTO matricula VALUES (200, 10, 'SQL'); -- Asociado a Carlos (OK)
-    App->>DB: COMMIT;
+    App->>DB: INSERT INTO matricula VALUES (200, 10, SQL)
+    App->>DB: COMMIT
     Note over DB: Carlos y su matrícula 200 quedan guardados definitivamente.
 ```
 

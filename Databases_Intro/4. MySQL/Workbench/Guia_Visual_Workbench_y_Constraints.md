@@ -143,11 +143,11 @@ sequenceDiagram
     
     Note over Backend,DB: Conversación 2: Los Datos (Protocolo MySQL Binario)
     Backend->>DB: Handshake TCP + Auth (Puerto 3306)
-    Backend->>DB: Query: "SELECT id, nombre FROM alumno;"
-    DB-->>Backend: Filas en binario: [1, 'Ana'], [2, 'Luis']
+    Backend->>DB: Query: SELECT id, nombre FROM alumno
+    DB-->>Backend: Filas en binario: id 1 Ana, id 2 Luis
     
     Note over Backend: El backend procesa las filas y las convierte en HTML o JSON
-    Backend-->>Usuario: HTTP 200 OK (Cuerpo: JSON [{id:1, nombre:'Ana'}...])
+    Backend-->>Usuario: HTTP 200 OK (Cuerpo: JSON con alumnos)
 ```
 
 ### Las dos conversaciones explicadas
