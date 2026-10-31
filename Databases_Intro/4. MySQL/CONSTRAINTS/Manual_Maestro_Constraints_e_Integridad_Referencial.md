@@ -48,7 +48,7 @@ A lo largo de este manual maestro, desgranaremos las 12 infografías de la carpe
 ## Acto 1: MySQL, el Guardián de los Datos — Tipología Completa de Constraints
 
 <p align="center">
-  <img src="1. MySQL_ el guardián de los datos-5.png" alt="1. MySQL: el guardián de los datos" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="1. MySQL_ el guardián de los datos-5.png" alt="1. MySQL: el guardián de los datos" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -86,10 +86,10 @@ flowchart TD
 ## Acto 2: Anatomía de la Relación Padre-Hija y Claves Foráneas
 
 <p align="center">
-  <img src="2. Relación padre-hija en MySQL-1.png" alt="2. Relación padre-hija en MySQL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="2. Relación padre-hija en MySQL-1.png" alt="2. Relación padre-hija en MySQL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="2. Relaciones de claves entre alumno y matrícula-13.png" alt="2. Relaciones de claves entre alumno y matrícula" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="2. Relaciones de claves entre alumno y matrícula-13.png" alt="2. Relaciones de claves entre alumno y matrícula" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de las láminas
@@ -122,7 +122,7 @@ TABLA PADRE: alumno                     TABLA HIJA: matricula
 ## Acto 3: El Guardián en Acción — ¿Puedo guardar esta matrícula? (Validación en Inserción)
 
 <p align="center">
-  <img src="3. ¿Puedo guardar esta matrícula_-12.png" alt="3. ¿Puedo guardar esta matrícula?" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="3. ¿Puedo guardar esta matrícula_-12.png" alt="3. ¿Puedo guardar esta matrícula?" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -178,10 +178,10 @@ INSERT INTO matricula (id, alumno_id, curso) VALUES (106, NULL, 'SQL');
   <img src="5. ON DELETE CASCADE_ borrado de filas hijas-6.png" alt="5. ON DELETE CASCADE: borrado de filas hijas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="6. Matrículas conservadas, vínculo en NULL-3.png" alt="6. Matrículas conservadas, vínculo en NULL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="6. Matrículas conservadas, vínculo en NULL-3.png" alt="6. Matrículas conservadas, vínculo en NULL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="7. Tres políticas para la misma relación-4.png" alt="7. Tres políticas para la misma relación" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="7. Tres políticas para la misma relación-4.png" alt="7. Tres políticas para la misma relación" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de las láminas
@@ -236,7 +236,7 @@ flowchart TD
 ## Acto 5: Cambio de Identidad — ON UPDATE CASCADE vs RESTRICT
 
 <p align="center">
-  <img src="8. Cambio de clave, vínculos intactos-8.png" alt="8. Cambio de clave, vínculos intactos" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="8. Cambio de clave, vínculos intactos-8.png" alt="8. Cambio de clave, vínculos intactos" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -271,7 +271,7 @@ alumno (id=10: Ana) ◄─── matricula (id=102, alumno_id=10, curso='Python'
   <img src="9. Clave externa en la tabla hija-10.png" alt="9. Clave externa en la tabla hija" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="10. Configura la clave foránea en Workbench-9.png" alt="10. Configura la clave foránea en Workbench" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="10. Configura la clave foránea en Workbench-9.png" alt="10. Configura la clave foránea en Workbench" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### El orden riguroso de creación en DDL
@@ -318,7 +318,7 @@ CREATE TABLE matricula (
 ## Acto 7: La Trampa de los Nombres Parecidos — Un Nombre NO crea una Foreign Key
 
 <p align="center">
-  <img src="11. Un nombre no crea una clave foránea-7.png" alt="11. Un nombre no crea una clave foránea" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="11. Un nombre no crea una clave foránea-7.png" alt="11. Un nombre no crea una clave foránea" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -478,7 +478,7 @@ Devuelve todas las filas de ambas tablas, asociando las que coinciden y rellenan
 ## Acto 9: Constraints y Transacciones ACID — Savepoints, Fallos y Rollback
 
 <p align="center">
-  <img src="12. Laboratorio de borrado con claves foráneas-11.png" alt="12. Laboratorio de borrado con claves foráneas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="12. Laboratorio de borrado con claves foráneas-11.png" alt="12. Laboratorio de borrado con claves foráneas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina

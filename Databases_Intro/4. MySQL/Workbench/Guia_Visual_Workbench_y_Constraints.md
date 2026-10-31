@@ -50,7 +50,7 @@ Para que todo sea tangible, nos acompañará un caso de estudio real: una peque�
 ## Acto 1: El Mapa y la Separación de Poderes (Workbench vs mysqld)
 
 <p align="center">
-  <img src="1. Quién trabaja detrás de Workbench-1.png" alt="1. Quién trabaja detrás de Workbench" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="1. Quién trabaja detrás de Workbench-1.png" alt="1. Quién trabaja detrás de Workbench" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -268,7 +268,7 @@ Por defecto, Workbench activa una protección de seguridad para evitar que los d
 ## Acto 5: El Diagrama EER — De las Tablas al Modelo Visual (Guía Paso a Paso)
 
 <p align="center">
-  <img src="6. Modelo EER_ alumnos, cursos y matrículas-2.png" alt="6. Modelo EER: alumnos, cursos y matrículas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="6. Modelo EER_ alumnos, cursos y matrículas-2.png" alt="6. Modelo EER: alumnos, cursos y matrículas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -360,7 +360,7 @@ Si estás empezando un proyecto desde cero, puedes dibujar primero y programar d
 ## Acto 6: Diseña Reglas, no solo Tablas — Las Casillas Sagradas de Workbench
 
 <p align="center">
-  <img src="7. Diseña reglas, no solo tablas-8.png" alt="7. Diseña reglas, no solo tablas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="7. Diseña reglas, no solo tablas-8.png" alt="7. Diseña reglas, no solo tablas" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -423,7 +423,7 @@ CREATE TABLE matricula (
 ## Acto 7: EL GUARDIÁN DE LA INTEGRIDAD — Guía Profunda de Constraints
 
 <p align="center">
-  <img src="8. Guardián de la integridad en MySQL-6.png" alt="8. Guardián de la integridad en MySQL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="8. Guardián de la integridad en MySQL-6.png" alt="8. Guardián de la integridad en MySQL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### 7.1. ¿Dónde vive la restricción y por qué no depende del cliente?

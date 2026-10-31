@@ -229,7 +229,7 @@ sequenceDiagram
   <img src="5. MySQL_ TCP o socket Unix-1.png" alt="5. MySQL: TCP o socket Unix" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="5. Workbench y sockets Unix_ corrección técnica-13.png" alt="5. Workbench y sockets Unix: corrección técnica" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="5. Workbench y sockets Unix_ corrección técnica-13.png" alt="5. Workbench y sockets Unix: corrección técnica" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de las láminas
@@ -266,7 +266,7 @@ Cuando ejecutas el cliente `mysql` en tu propio ordenador donde corre el servido
 ## Capítulo 6: Antes del SELECT — Los Tres Handshakes Consecutivos
 
 <p align="center">
-  <img src="6. Antes del SELECT_ TCP, TLS y autenticación-9.png" alt="6. Antes del SELECT: TCP, TLS y autenticación" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="6. Antes del SELECT_ TCP, TLS y autenticación-9.png" alt="6. Antes del SELECT: TCP, TLS y autenticación" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
@@ -326,7 +326,7 @@ sequenceDiagram
   <img src="7. Abrimos un paquete MySQL con lupa-3.png" alt="7. Abrimos un paquete MySQL con lupa" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="7. Respuesta esquemática de SELECT 1-14.png" alt="7. Respuesta esquemática de SELECT 1" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="7. Respuesta esquemática de SELECT 1-14.png" alt="7. Respuesta esquemática de SELECT 1" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de las láminas
@@ -384,10 +384,10 @@ Cuando el servidor procesa `SELECT 1;`, no responde con un simple número `1`. D
 ## Capítulo 8: Texto, Binario y Unicode — Codificar, Comprimir y Cifrar
 
 <p align="center">
-  <img src="8. UTF-8, binario y MySQL_ guía visual-11.png" alt="8. UTF-8, binario y MySQL: guía visual" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="8. UTF-8, binario y MySQL_ guía visual-11.png" alt="8. UTF-8, binario y MySQL: guía visual" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 <p align="center">
-  <img src="8. Infografía conceptual de SQL y UTF-8-15.png" alt="8. Infografía conceptual de SQL y UTF-8" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="8. Infografía conceptual de SQL y UTF-8-15.png" alt="8. Infografía conceptual de SQL y UTF-8" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de las láminas
@@ -612,7 +612,7 @@ sequenceDiagram
 ## Capítulo 12: Comprimir, Cifrar y Tunelizar — El Dilema de la CPU vs la Red
 
 <p align="center">
-  <img src="12. Compresión, TLS y túneles MySQL-6.png" alt="12. Compresión, TLS y túneles MySQL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <img src="12. Compresión, TLS y túneles MySQL-6.png" alt="12. Compresión, TLS y túneles MySQL" width="750" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </p>
 
 ### La historia detrás de la lámina
